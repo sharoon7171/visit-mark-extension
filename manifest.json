@@ -1,6 +1,9 @@
 {
   "manifest_version": 3,
   "permissions": ["storage", "activeTab"],
+  "background": {
+    "service_worker": "background.js"
+  },
   "name": "VisitedLinks",
   "version": "1.0.8",
   "description": "Settings UI for highlight preferences (sync and per-site).",

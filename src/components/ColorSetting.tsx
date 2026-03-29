@@ -1,4 +1,7 @@
 import { HexColorPicker } from "react-colorful";
+
+import { DEFAULT_VISITED_HEX } from "@/lib/hexColor";
+
 import {
   colorFieldRoot,
   colorFieldTopRow,
@@ -28,7 +31,7 @@ function toFullHex(raw: string): string {
     .replace(/[^0-9a-fA-F]/g, "")
     .slice(0, 6);
   if (digits.length === 0) {
-    return "#808080";
+    return DEFAULT_VISITED_HEX;
   }
   if (digits.length === 3) {
     return `#${digits[0]}${digits[0]}${digits[1]}${digits[1]}${digits[2]}${digits[2]}`.toLowerCase();

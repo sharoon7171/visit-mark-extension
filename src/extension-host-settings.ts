@@ -1,5 +1,8 @@
-import { readLegacySiteSyncDefaults } from "@/extension-options-sync";
-import { DEFAULT_VISITED_HEX, parseHexColor } from "@/lib/hexColor";
+import {
+  type ExtensionSyncedOptions,
+  EXTENSION_SYNC_OPTION_KEYS,
+} from "@/extension-options-sync";
+import { parseHexColor } from "@/lib/hexColor";
 
 export type HostSiteSettings = {
   overrideEnabled: boolean;
@@ -7,7 +10,6 @@ export type HostSiteSettings = {
 };
 
 const STORAGE_KEY = "vl_perHost";
-const LEGACY_SYNC = ["vl_siteEnabled", "vl_siteHighlightColor"] as const;
 
 const DEFAULT_HOST: HostSiteSettings = {
   overrideEnabled: false,
@@ -19,11 +21,12 @@ function parseHostEntry(raw: unknown): HostSiteSettings {
     return { ...DEFAULT_HOST };
   }
   const o = raw as Record<string, unknown>;
+  const v = o.highlightColor;
   let highlightColor: string | null = null;
-  if ("highlightColor" in o) {
-    const v = o.highlightColor;
-    if (v !== null && v !== undefined && v !== "") {
-      highlightColor = parseHexColor(v, DEFAULT_VISITED_HEX);
+  if (v !== null && v !== undefined && v !== "") {
+    const parsed = parseHexColor(v);
+    if (parsed !== null) {
+      highlightColor = parsed;
     }
   }
   return {
@@ -33,8 +36,7 @@ function parseHostEntry(raw: unknown): HostSiteSettings {
   };
 }
 
-async function loadMap(): Promise<Record<string, HostSiteSettings>> {
-  const raw = (await chrome.storage.local.get(STORAGE_KEY))[STORAGE_KEY];
+function parseMap(raw: unknown): Record<string, HostSiteSettings> {
   if (!raw || typeof raw !== "object") {
     return {};
   }
@@ -47,6 +49,18 @@ async function loadMap(): Promise<Record<string, HostSiteSettings>> {
   return out;
 }
 
+async function loadMap(): Promise<Record<string, HostSiteSettings>> {
+  const syncBag = await chrome.storage.sync.get(STORAGE_KEY);
+  return parseMap(syncBag[STORAGE_KEY]);
+}
+
+function hostSiteSettingsEqual(a: HostSiteSettings, b: HostSiteSettings): boolean {
+  return (
+    a.overrideEnabled === b.overrideEnabled &&
+    a.highlightColor === b.highlightColor
+  );
+}
+
 export async function loadHostSiteSettings(
   hostname: string,
 ): Promise<HostSiteSettings> {
@@ -54,28 +68,52 @@ export async function loadHostSiteSettings(
     return { ...DEFAULT_HOST };
   }
   const map = await loadMap();
-  return map[hostname] ?? { ...DEFAULT_HOST };
+  const entry = map[hostname];
+  if (!entry) {
+    return { ...DEFAULT_HOST };
+  }
+  return { ...entry };
 }
 
-export async function migrateLegacySiteKeysForHost(
-  hostname: string | null,
+export type PopupSyncFlushPayload = {
+  hostname: string | null;
+  initialGlobal: ExtensionSyncedOptions;
+  currentGlobal: ExtensionSyncedOptions;
+  initialHost: HostSiteSettings;
+  currentHost: HostSiteSettings;
+};
+
+export async function flushPopupSyncedState(
+  input: PopupSyncFlushPayload,
 ): Promise<void> {
-  const raw = await chrome.storage.sync.get([...LEGACY_SYNC]);
-  if (!raw.vl_siteEnabled && !raw.vl_siteHighlightColor) {
-    return;
+  const payload: Record<
+    string,
+    boolean | string | Record<string, HostSiteSettings>
+  > = {};
+  const cg = input.currentGlobal;
+  const ig = input.initialGlobal;
+  if (
+    cg.masterEnabled !== ig.masterEnabled ||
+    cg.defaultHighlightColor !== ig.defaultHighlightColor
+  ) {
+    payload[EXTENSION_SYNC_OPTION_KEYS.masterEnabled] = cg.masterEnabled;
+    payload[EXTENSION_SYNC_OPTION_KEYS.defaultHighlightColor] =
+      cg.defaultHighlightColor;
   }
-  if (!hostname) {
-    return;
+  if (
+    input.hostname &&
+    !hostSiteSettingsEqual(input.initialHost, input.currentHost)
+  ) {
+    const map = await loadMap();
+    map[input.hostname] = {
+      overrideEnabled: input.currentHost.overrideEnabled,
+      highlightColor: input.currentHost.highlightColor,
+    };
+    payload[STORAGE_KEY] = map;
   }
-  const map = await loadMap();
-  if (map[hostname] === undefined) {
-    const legacy = await readLegacySiteSyncDefaults();
-    await persistHostSiteSettings(hostname, {
-      overrideEnabled: legacy.siteEnabled,
-      highlightColor: legacy.siteHighlightColor,
-    });
+  if (Object.keys(payload).length > 0) {
+    await chrome.storage.sync.set(payload);
   }
-  await chrome.storage.sync.remove([...LEGACY_SYNC]);
 }
 
 export async function clearHostSiteSettings(hostname: string): Promise<void> {
@@ -87,27 +125,5 @@ export async function clearHostSiteSettings(hostname: string): Promise<void> {
     return;
   }
   delete map[hostname];
-  await chrome.storage.local.set({ [STORAGE_KEY]: map });
-}
-
-export async function persistHostSiteSettings(
-  hostname: string,
-  partial: Partial<HostSiteSettings>,
-): Promise<void> {
-  if (!hostname) {
-    return;
-  }
-  const map = await loadMap();
-  const prev = map[hostname] ?? { ...DEFAULT_HOST };
-  map[hostname] = {
-    overrideEnabled:
-      partial.overrideEnabled !== undefined
-        ? partial.overrideEnabled
-        : prev.overrideEnabled,
-    highlightColor:
-      partial.highlightColor !== undefined
-        ? partial.highlightColor
-        : prev.highlightColor,
-  };
-  await chrome.storage.local.set({ [STORAGE_KEY]: map });
+  await chrome.storage.sync.set({ [STORAGE_KEY]: map });
 }

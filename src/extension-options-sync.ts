@@ -10,70 +10,36 @@ export const EXTENSION_SYNC_OPTION_KEYS = {
   defaultHighlightColor: "vl_defaultHighlightColor",
 } as const;
 
-const STORAGE_KEYS = EXTENSION_SYNC_OPTION_KEYS;
-
-const LEGACY_SITE_KEYS = {
-  siteEnabled: "vl_siteEnabled",
-  siteHighlightColor: "vl_siteHighlightColor",
-} as const;
-
 const DEFAULTS: ExtensionSyncedOptions = {
   masterEnabled: true,
   defaultHighlightColor: DEFAULT_VISITED_HEX,
 };
 
+const SYNC_KEYS = Object.values(EXTENSION_SYNC_OPTION_KEYS);
+const SYNC_KEY_SET = new Set<string>(SYNC_KEYS);
+
 function fromRecord(raw: Record<string, unknown>): ExtensionSyncedOptions {
-  const m = raw[STORAGE_KEYS.masterEnabled];
+  const m = raw[EXTENSION_SYNC_OPTION_KEYS.masterEnabled];
+  const colorRaw = parseHexColor(
+    raw[EXTENSION_SYNC_OPTION_KEYS.defaultHighlightColor],
+  );
   return {
     masterEnabled: typeof m === "boolean" ? m : DEFAULTS.masterEnabled,
-    defaultHighlightColor: parseHexColor(
-      raw[STORAGE_KEYS.defaultHighlightColor],
-      DEFAULTS.defaultHighlightColor,
-    ),
+    defaultHighlightColor: colorRaw ?? DEFAULTS.defaultHighlightColor,
   };
 }
 
 export async function loadExtensionSyncedOptions(): Promise<ExtensionSyncedOptions> {
-  const stored = await chrome.storage.sync.get(Object.values(STORAGE_KEYS));
+  const stored = await chrome.storage.sync.get(SYNC_KEYS);
   return fromRecord(stored as Record<string, unknown>);
 }
 
 export async function resetExtensionSyncedOptionsToDefaults(): Promise<void> {
   await chrome.storage.sync.set({
-    [STORAGE_KEYS.masterEnabled]: DEFAULTS.masterEnabled,
-    [STORAGE_KEYS.defaultHighlightColor]: DEFAULTS.defaultHighlightColor,
+    [EXTENSION_SYNC_OPTION_KEYS.masterEnabled]: DEFAULTS.masterEnabled,
+    [EXTENSION_SYNC_OPTION_KEYS.defaultHighlightColor]:
+      DEFAULTS.defaultHighlightColor,
   });
-}
-
-export async function persistExtensionSyncedOptions(
-  partial: Partial<ExtensionSyncedOptions>,
-): Promise<void> {
-  const payload: Record<string, boolean | string> = {};
-  if (partial.masterEnabled !== undefined) {
-    payload[STORAGE_KEYS.masterEnabled] = partial.masterEnabled;
-  }
-  if (partial.defaultHighlightColor !== undefined) {
-    payload[STORAGE_KEYS.defaultHighlightColor] = partial.defaultHighlightColor;
-  }
-  if (Object.keys(payload).length > 0) {
-    await chrome.storage.sync.set(payload);
-  }
-}
-
-export async function readLegacySiteSyncDefaults(): Promise<{
-  siteEnabled: boolean;
-  siteHighlightColor: string;
-}> {
-  const raw = await chrome.storage.sync.get(Object.values(LEGACY_SITE_KEYS));
-  const rec = raw as Record<string, unknown>;
-  const s = rec[LEGACY_SITE_KEYS.siteEnabled];
-  return {
-    siteEnabled: typeof s === "boolean" ? s : false,
-    siteHighlightColor: parseHexColor(
-      rec[LEGACY_SITE_KEYS.siteHighlightColor],
-      DEFAULT_VISITED_HEX,
-    ),
-  };
 }
 
 export function subscribeExtensionSyncedOptions(
@@ -82,24 +48,16 @@ export function subscribeExtensionSyncedOptions(
     changedOptionKeys: string[],
   ) => void,
 ): () => void {
-  const optionKeySet = new Set<string>(Object.values(STORAGE_KEYS));
-  const watched = [
-    ...Object.values(STORAGE_KEYS),
-    ...Object.values(LEGACY_SITE_KEYS),
-  ];
   const handler: Parameters<typeof chrome.storage.onChanged.addListener>[0] = (
     changes,
     area,
   ) => {
-    if (area !== "sync" || !watched.some((k) => changes[k])) {
+    if (area !== "sync" || !SYNC_KEYS.some((k) => changes[k])) {
       return;
     }
     const changedOptionKeys = Object.keys(changes).filter((k) =>
-      optionKeySet.has(k),
+      SYNC_KEY_SET.has(k),
     );
-    if (changedOptionKeys.length === 0) {
-      return;
-    }
     void loadExtensionSyncedOptions().then((next) => {
       onUpdate(next, changedOptionKeys);
     });

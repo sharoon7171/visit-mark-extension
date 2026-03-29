@@ -1,22 +1,24 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+
+import { POPUP_PORT_NAME } from "@/background/popupStorageSyncChannel";
 import { ColorSetting } from "@/components/ColorSetting";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
 import { SettingToggle } from "@/components/SettingToggle";
 import {
+  clearHostSiteSettings,
+  type HostSiteSettings,
+  loadHostSiteSettings,
+  type PopupSyncFlushPayload,
+} from "@/extension-host-settings";
+import {
   type ExtensionSyncedOptions,
   EXTENSION_SYNC_OPTION_KEYS,
   loadExtensionSyncedOptions,
-  persistExtensionSyncedOptions,
   resetExtensionSyncedOptionsToDefaults,
   subscribeExtensionSyncedOptions,
 } from "@/extension-options-sync";
-import {
-  type HostSiteSettings,
-  clearHostSiteSettings,
-  loadHostSiteSettings,
-  persistHostSiteSettings,
-} from "@/extension-host-settings";
+
 import {
   popupMainScroll,
   popupShell,
@@ -55,31 +57,65 @@ export function App({
   const [hostSettings, setHostSettings] = useState(initialHostSettings);
 
   const defaultColorRef = useRef(initialSyncedOptions.defaultHighlightColor);
-  const persistDefaultColorTimerRef = useRef<ReturnType<
-    typeof setTimeout
-  > | null>(null);
+  const masterEnabledRef = useRef(initialSyncedOptions.masterEnabled);
+  const hostSettingsRef = useRef(initialHostSettings);
+  const initialGlobalRef = useRef<ExtensionSyncedOptions>({
+    masterEnabled: initialSyncedOptions.masterEnabled,
+    defaultHighlightColor: initialSyncedOptions.defaultHighlightColor,
+  });
+  const initialHostRef = useRef<HostSiteSettings>({
+    overrideEnabled: initialHostSettings.overrideEnabled,
+    highlightColor: initialHostSettings.highlightColor,
+  });
 
   defaultColorRef.current = defaultHighlightColor;
+  masterEnabledRef.current = masterEnabled;
+  hostSettingsRef.current = hostSettings;
 
-  useEffect(() => {
-    const flushDefaultHighlightColor = () => {
-      if (persistDefaultColorTimerRef.current !== null) {
-        clearTimeout(persistDefaultColorTimerRef.current);
-        persistDefaultColorTimerRef.current = null;
-      }
-      void persistExtensionSyncedOptions({
-        defaultHighlightColor: defaultColorRef.current,
-      });
-    };
-    window.addEventListener("pagehide", flushDefaultHighlightColor);
+  const portRef = useRef<chrome.runtime.Port | null>(null);
+
+  useLayoutEffect(() => {
+    const port = chrome.runtime.connect({ name: POPUP_PORT_NAME });
+    portRef.current = port;
     return () => {
-      window.removeEventListener("pagehide", flushDefaultHighlightColor);
-      flushDefaultHighlightColor();
+      port.disconnect();
+      portRef.current = null;
     };
   }, []);
 
+  useLayoutEffect(() => {
+    const port = portRef.current;
+    if (!port) {
+      return;
+    }
+    const payload: PopupSyncFlushPayload = {
+      hostname: initialHostname,
+      initialGlobal: {
+        masterEnabled: initialGlobalRef.current.masterEnabled,
+        defaultHighlightColor: initialGlobalRef.current.defaultHighlightColor,
+      },
+      currentGlobal: {
+        masterEnabled: masterEnabledRef.current,
+        defaultHighlightColor: defaultColorRef.current,
+      },
+      initialHost: {
+        overrideEnabled: initialHostRef.current.overrideEnabled,
+        highlightColor: initialHostRef.current.highlightColor,
+      },
+      currentHost: {
+        overrideEnabled: hostSettingsRef.current.overrideEnabled,
+        highlightColor: hostSettingsRef.current.highlightColor,
+      },
+    };
+    port.postMessage({ type: "state", payload });
+  });
+
   useEffect(() => {
     return subscribeExtensionSyncedOptions((next, changedKeys) => {
+      initialGlobalRef.current = {
+        masterEnabled: next.masterEnabled,
+        defaultHighlightColor: next.defaultHighlightColor,
+      };
       if (changedKeys.includes(EXTENSION_SYNC_OPTION_KEYS.masterEnabled)) {
         setMasterEnabled(next.masterEnabled);
       }
@@ -99,10 +135,16 @@ export function App({
       changes,
       area,
     ) => {
-      if (area !== "local" || !changes.vl_perHost) {
+      if (area !== "sync" || !changes.vl_perHost) {
         return;
       }
-      void loadHostSiteSettings(initialHostname).then(setHostSettings);
+      void loadHostSiteSettings(initialHostname).then((s) => {
+        setHostSettings(s);
+        initialHostRef.current = {
+          overrideEnabled: s.overrideEnabled,
+          highlightColor: s.highlightColor,
+        };
+      });
     };
     chrome.storage.onChanged.addListener(handler);
     return () => {
@@ -112,18 +154,12 @@ export function App({
 
   const setMasterEnabledPersist = (checked: boolean) => {
     setMasterEnabled(checked);
-    void persistExtensionSyncedOptions({ masterEnabled: checked });
+    masterEnabledRef.current = checked;
   };
 
   const setDefaultHighlightColorPersist = (value: string) => {
     setDefaultHighlightColor(value);
-    if (persistDefaultColorTimerRef.current !== null) {
-      clearTimeout(persistDefaultColorTimerRef.current);
-    }
-    persistDefaultColorTimerRef.current = setTimeout(() => {
-      persistDefaultColorTimerRef.current = null;
-      void persistExtensionSyncedOptions({ defaultHighlightColor: value });
-    }, 250);
+    defaultColorRef.current = value;
   };
 
   const setSiteOverrideEnabledPersist = (checked: boolean) => {
@@ -134,9 +170,6 @@ export function App({
       overrideEnabled: checked,
       highlightColor: prev.highlightColor,
     }));
-    void persistHostSiteSettings(initialHostname, {
-      overrideEnabled: checked,
-    });
   };
 
   const setSiteHighlightColorPersist = (value: string) => {
@@ -144,10 +177,6 @@ export function App({
       return;
     }
     setHostSettings({
-      overrideEnabled: true,
-      highlightColor: value,
-    });
-    void persistHostSiteSettings(initialHostname, {
       overrideEnabled: true,
       highlightColor: value,
     });
@@ -160,6 +189,11 @@ export function App({
       setMasterEnabled(next.masterEnabled);
       setDefaultHighlightColor(next.defaultHighlightColor);
       defaultColorRef.current = next.defaultHighlightColor;
+      masterEnabledRef.current = next.masterEnabled;
+      initialGlobalRef.current = {
+        masterEnabled: next.masterEnabled,
+        defaultHighlightColor: next.defaultHighlightColor,
+      };
     })();
   };
 
@@ -169,10 +203,12 @@ export function App({
     }
     void (async () => {
       await clearHostSiteSettings(initialHostname);
-      setHostSettings({
+      const cleared: HostSiteSettings = {
         overrideEnabled: false,
         highlightColor: null,
-      });
+      };
+      setHostSettings(cleared);
+      initialHostRef.current = cleared;
     })();
   };
 
@@ -196,14 +232,14 @@ export function App({
               <SettingToggle
                 id="global-enabled"
                 label="Master enable"
-                description="Stored in Chrome sync across your devices."
+                description="Chrome sync: saved when this popup closes if it changed."
                 checked={masterEnabled}
                 onChange={setMasterEnabledPersist}
               />
               <ColorSetting
                 id="global-color"
                 label="Default color"
-                hint="Debounced save to Chrome sync after you change it."
+                hint="Live preview while open; Chrome sync updates when the popup closes."
                 value={defaultHighlightColor}
                 onChange={setDefaultHighlightColorPersist}
               />
@@ -227,7 +263,7 @@ export function App({
               <SettingToggle
                 id="site-enabled"
                 label="Use site color"
-                description="When on, the site color below overrides the default."
+                description="When on, the site color overrides the default (Chrome sync when the popup closes if changed)."
                 checked={hostSettings.overrideEnabled}
                 onChange={setSiteOverrideEnabledPersist}
                 disabled={siteDisabled}
@@ -235,7 +271,7 @@ export function App({
               <ColorSetting
                 id="site-color"
                 label="Site color"
-                hint="Choosing a color enables override and saves for this host."
+                hint="Live preview while open; per-host Chrome sync when the popup closes."
                 value={
                   hostSettings.highlightColor ?? defaultHighlightColor
                 }

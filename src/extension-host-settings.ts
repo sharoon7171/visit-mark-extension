@@ -5,20 +5,20 @@ import {
 import { parseHexColor } from "@/lib/hexColor";
 
 export type HostSiteSettings = {
-  overrideEnabled: boolean;
+  siteColorsEnabled: boolean;
   highlightColor: string | null;
 };
 
 const STORAGE_KEY = "vl_perHost";
 
-const DEFAULT_HOST: HostSiteSettings = {
-  overrideEnabled: false,
+const defaultHostSiteSettings: HostSiteSettings = {
+  siteColorsEnabled: true,
   highlightColor: null,
 };
 
 function parseHostEntry(raw: unknown): HostSiteSettings {
   if (!raw || typeof raw !== "object") {
-    return { ...DEFAULT_HOST };
+    return { ...defaultHostSiteSettings };
   }
   const o = raw as Record<string, unknown>;
   const v = o.highlightColor;
@@ -29,9 +29,14 @@ function parseHostEntry(raw: unknown): HostSiteSettings {
       highlightColor = parsed;
     }
   }
+  let siteColorsEnabled = defaultHostSiteSettings.siteColorsEnabled;
+  if (typeof o.siteColorsEnabled === "boolean") {
+    siteColorsEnabled = o.siteColorsEnabled;
+  } else if (typeof o.overrideEnabled === "boolean") {
+    siteColorsEnabled = o.overrideEnabled;
+  }
   return {
-    overrideEnabled:
-      typeof o.overrideEnabled === "boolean" ? o.overrideEnabled : false,
+    siteColorsEnabled,
     highlightColor,
   };
 }
@@ -49,30 +54,75 @@ function parseMap(raw: unknown): Record<string, HostSiteSettings> {
   return out;
 }
 
+function stripLegacyFollowGlobalEntries(raw: Record<string, unknown>): {
+  next: Record<string, unknown>;
+  changed: boolean;
+} {
+  const next: Record<string, unknown> = { ...raw };
+  let changed = false;
+  for (const [host, entry] of Object.entries(next)) {
+    if (!entry || typeof entry !== "object") {
+      continue;
+    }
+    const e = entry as Record<string, unknown>;
+    if (
+      typeof e.siteColorsEnabled !== "boolean" &&
+      e.overrideEnabled === false
+    ) {
+      delete next[host];
+      changed = true;
+    }
+  }
+  return { next, changed };
+}
+
 async function loadMap(): Promise<Record<string, HostSiteSettings>> {
   const syncBag = await chrome.storage.sync.get(STORAGE_KEY);
-  return parseMap(syncBag[STORAGE_KEY]);
+  const rawRoot = syncBag[STORAGE_KEY];
+  if (!rawRoot || typeof rawRoot !== "object") {
+    return {};
+  }
+  const rawObj = rawRoot as Record<string, unknown>;
+  const { next, changed } = stripLegacyFollowGlobalEntries(rawObj);
+  if (changed) {
+    await chrome.storage.sync.set({ [STORAGE_KEY]: next });
+  }
+  return parseMap(next);
 }
 
 function hostSiteSettingsEqual(a: HostSiteSettings, b: HostSiteSettings): boolean {
   return (
-    a.overrideEnabled === b.overrideEnabled &&
+    a.siteColorsEnabled === b.siteColorsEnabled &&
     a.highlightColor === b.highlightColor
   );
 }
 
-export async function loadHostSiteSettings(
+export type HostSiteSettingsModel = {
+  settings: HostSiteSettings;
+  persisted: boolean;
+};
+
+export async function loadHostSiteSettingsModel(
   hostname: string,
-): Promise<HostSiteSettings> {
+): Promise<HostSiteSettingsModel> {
   if (!hostname) {
-    return { ...DEFAULT_HOST };
+    return {
+      settings: { ...defaultHostSiteSettings },
+      persisted: false,
+    };
   }
   const map = await loadMap();
   const entry = map[hostname];
-  if (!entry) {
-    return { ...DEFAULT_HOST };
+  if (entry) {
+    return { settings: { ...entry }, persisted: true };
   }
-  return { ...entry };
+  return {
+    settings: {
+      siteColorsEnabled: defaultHostSiteSettings.siteColorsEnabled,
+      highlightColor: null,
+    },
+    persisted: false,
+  };
 }
 
 export type PopupSyncFlushPayload = {
@@ -106,7 +156,7 @@ export async function flushPopupSyncedState(
   ) {
     const map = await loadMap();
     map[input.hostname] = {
-      overrideEnabled: input.currentHost.overrideEnabled,
+      siteColorsEnabled: input.currentHost.siteColorsEnabled,
       highlightColor: input.currentHost.highlightColor,
     };
     payload[STORAGE_KEY] = map;

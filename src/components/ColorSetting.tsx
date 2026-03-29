@@ -1,3 +1,4 @@
+import { useCallback, useEffect, useRef } from "react";
 import { HexColorPicker } from "react-colorful";
 
 import { DEFAULT_VISITED_HEX } from "@/lib/hexColor";
@@ -22,6 +23,8 @@ type ColorSettingProps = {
   value: string;
   onChange: (value: string) => void;
   disabled?: boolean;
+  suppressProgrammaticPickerEcho?: boolean;
+  programmaticEchoResetKey?: string;
 };
 
 function toFullHex(raw: string): string {
@@ -46,10 +49,38 @@ export function ColorSetting({
   value,
   onChange,
   disabled = false,
+  suppressProgrammaticPickerEcho = false,
+  programmaticEchoResetKey,
 }: ColorSettingProps) {
   const safe = toFullHex(value);
   const displayHex = safe.toUpperCase();
   const labelId = `${id}-label`;
+  const pickerCommitOpenRef = useRef(!suppressProgrammaticPickerEcho);
+
+  useEffect(() => {
+    if (suppressProgrammaticPickerEcho) {
+      pickerCommitOpenRef.current = false;
+    } else {
+      pickerCommitOpenRef.current = true;
+    }
+  }, [programmaticEchoResetKey, suppressProgrammaticPickerEcho]);
+
+  const openPickerCommit = useCallback(() => {
+    if (suppressProgrammaticPickerEcho) {
+      pickerCommitOpenRef.current = true;
+    }
+  }, [suppressProgrammaticPickerEcho]);
+
+  const handlePickerChange = useCallback(
+    (next: string) => {
+      if (suppressProgrammaticPickerEcho && !pickerCommitOpenRef.current) {
+        return;
+      }
+      onChange(toFullHex(next));
+    },
+    [onChange, suppressProgrammaticPickerEcho],
+  );
+
   return (
     <div className={colorFieldRoot}>
       <div className={colorFieldTopRow}>
@@ -76,11 +107,21 @@ export function ColorSetting({
             ? `${colorPickerEmbed} pointer-events-none opacity-50`
             : colorPickerEmbed
         }
+        onPointerDownCapture={
+          suppressProgrammaticPickerEcho && !disabled
+            ? openPickerCommit
+            : undefined
+        }
+        onFocusCapture={
+          suppressProgrammaticPickerEcho && !disabled
+            ? openPickerCommit
+            : undefined
+        }
       >
         <HexColorPicker
           id={id}
           color={safe}
-          onChange={onChange}
+          onChange={handlePickerChange}
           aria-labelledby={labelId}
           className={colorPickerRoot}
         />

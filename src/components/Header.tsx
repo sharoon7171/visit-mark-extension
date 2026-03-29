@@ -26,7 +26,7 @@ export function Header() {
         </span>
         <div className={headerTitles}>
           <h1 className={headerTitle}>VisitedLinks</h1>
-          <p className={headerTagline}>Highlight preferences</p>
+          <p className={headerTagline}>Visited link colors</p>
         </div>
       </div>
     </header>

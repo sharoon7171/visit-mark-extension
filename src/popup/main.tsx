@@ -1,11 +1,13 @@
+import { createRoot } from "react-dom/client";
+
 import "@fontsource/poppins/latin-500.css";
 import "@fontsource/poppins/latin-600.css";
 import "@fontsource/poppins/latin-700.css";
-import { createRoot } from "react-dom/client";
 
 import "@/global.css";
-import { loadHostSiteSettings } from "@/extension-host-settings";
+import { loadHostSiteSettingsModel } from "@/extension-host-settings";
 import { loadExtensionSyncedOptions } from "@/extension-options-sync";
+
 import { App } from "./App";
 
 const el = document.getElementById("root");
@@ -30,10 +32,10 @@ void (async () => {
     await document.fonts.ready;
   } catch {}
   const initialHostname = await activeTabHostname();
-  const [initialSyncedOptions, initialHostSettings] = await Promise.all([
-    loadExtensionSyncedOptions(),
-    loadHostSiteSettings(initialHostname ?? ""),
-  ]);
+  const initialSyncedOptions = await loadExtensionSyncedOptions();
+  const { settings: initialHostSettings } = await loadHostSiteSettingsModel(
+    initialHostname ?? "",
+  );
   createRoot(el).render(
     <App
       initialSyncedOptions={initialSyncedOptions}

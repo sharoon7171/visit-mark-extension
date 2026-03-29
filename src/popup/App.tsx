@@ -8,7 +8,7 @@ import { SettingToggle } from "@/components/SettingToggle";
 import {
   clearHostSiteSettings,
   type HostSiteSettings,
-  loadHostSiteSettings,
+  loadHostSiteSettingsModel,
   type PopupSyncFlushPayload,
 } from "@/extension-host-settings";
 import {
@@ -28,7 +28,9 @@ import {
   settingsCardBody,
   settingsCardGlobal,
   settingsCardHead,
-  settingsCardMeta,
+  settingsCardScopeGlobal,
+  settingsCardScopeSite,
+  settingsCardScopeSiteMuted,
   settingsCardSite,
   settingsCardTitle,
 } from "../../ui-classes/settings-card";
@@ -64,7 +66,7 @@ export function App({
     defaultHighlightColor: initialSyncedOptions.defaultHighlightColor,
   });
   const initialHostRef = useRef<HostSiteSettings>({
-    overrideEnabled: initialHostSettings.overrideEnabled,
+    siteColorsEnabled: initialHostSettings.siteColorsEnabled,
     highlightColor: initialHostSettings.highlightColor,
   });
 
@@ -99,11 +101,11 @@ export function App({
         defaultHighlightColor: defaultColorRef.current,
       },
       initialHost: {
-        overrideEnabled: initialHostRef.current.overrideEnabled,
+        siteColorsEnabled: initialHostRef.current.siteColorsEnabled,
         highlightColor: initialHostRef.current.highlightColor,
       },
       currentHost: {
-        overrideEnabled: hostSettingsRef.current.overrideEnabled,
+        siteColorsEnabled: hostSettingsRef.current.siteColorsEnabled,
         highlightColor: hostSettingsRef.current.highlightColor,
       },
     };
@@ -118,6 +120,7 @@ export function App({
       };
       if (changedKeys.includes(EXTENSION_SYNC_OPTION_KEYS.masterEnabled)) {
         setMasterEnabled(next.masterEnabled);
+        masterEnabledRef.current = next.masterEnabled;
       }
       if (
         changedKeys.includes(EXTENSION_SYNC_OPTION_KEYS.defaultHighlightColor)
@@ -138,11 +141,11 @@ export function App({
       if (area !== "sync" || !changes.vl_perHost) {
         return;
       }
-      void loadHostSiteSettings(initialHostname).then((s) => {
-        setHostSettings(s);
+      void loadHostSiteSettingsModel(initialHostname).then(({ settings }) => {
+        setHostSettings(settings);
         initialHostRef.current = {
-          overrideEnabled: s.overrideEnabled,
-          highlightColor: s.highlightColor,
+          siteColorsEnabled: settings.siteColorsEnabled,
+          highlightColor: settings.highlightColor,
         };
       });
     };
@@ -162,12 +165,12 @@ export function App({
     defaultColorRef.current = value;
   };
 
-  const setSiteOverrideEnabledPersist = (checked: boolean) => {
+  const setSiteColorsEnabledPersist = (checked: boolean) => {
     if (!initialHostname) {
       return;
     }
     setHostSettings((prev) => ({
-      overrideEnabled: checked,
+      siteColorsEnabled: checked,
       highlightColor: prev.highlightColor,
     }));
   };
@@ -177,7 +180,7 @@ export function App({
       return;
     }
     setHostSettings({
-      overrideEnabled: true,
+      siteColorsEnabled: true,
       highlightColor: value,
     });
   };
@@ -194,6 +197,14 @@ export function App({
         masterEnabled: next.masterEnabled,
         defaultHighlightColor: next.defaultHighlightColor,
       };
+      if (initialHostname) {
+        const { settings } = await loadHostSiteSettingsModel(initialHostname);
+        setHostSettings(settings);
+        initialHostRef.current = {
+          siteColorsEnabled: settings.siteColorsEnabled,
+          highlightColor: settings.highlightColor,
+        };
+      }
     })();
   };
 
@@ -203,20 +214,21 @@ export function App({
     }
     void (async () => {
       await clearHostSiteSettings(initialHostname);
-      const cleared: HostSiteSettings = {
-        overrideEnabled: false,
-        highlightColor: null,
+      const { settings } = await loadHostSiteSettingsModel(initialHostname);
+      setHostSettings(settings);
+      initialHostRef.current = {
+        siteColorsEnabled: settings.siteColorsEnabled,
+        highlightColor: settings.highlightColor,
       };
-      setHostSettings(cleared);
-      initialHostRef.current = cleared;
     })();
   };
 
-  const siteMeta = initialHostname
-    ? initialHostname
-    : "Unavailable on this page";
+  const siteMeta = initialHostname ? initialHostname : "No host";
 
   const siteDisabled = !initialHostname;
+  const siteControlsDisabled = siteDisabled || !masterEnabled;
+  const siteColorDisabled =
+    siteControlsDisabled || !hostSettings.siteColorsEnabled;
 
   return (
     <div className={popupShell}>
@@ -225,21 +237,21 @@ export function App({
         <div className={popupStack}>
           <section className={settingsCardGlobal}>
             <div className={settingsCardHead}>
-              <h2 className={settingsCardTitle}>Global settings</h2>
-              <p className={settingsCardMeta}>All websites</p>
+              <h2 className={settingsCardTitle}>Global</h2>
+              <p className={settingsCardScopeGlobal}>All websites</p>
             </div>
             <div className={settingsCardBody}>
               <SettingToggle
                 id="global-enabled"
-                label="Master enable"
-                description="Chrome sync: saved when this popup closes if it changed."
+                label="Enable"
+                description="Turn custom visited link colors on or off for all websites."
                 checked={masterEnabled}
                 onChange={setMasterEnabledPersist}
               />
               <ColorSetting
                 id="global-color"
-                label="Default color"
-                hint="Live preview while open; Chrome sync updates when the popup closes."
+                label="Global color"
+                hint="Default color when no site color is set."
                 value={defaultHighlightColor}
                 onChange={setDefaultHighlightColorPersist}
               />
@@ -249,43 +261,55 @@ export function App({
                   className={settingsResetButton}
                   onClick={resetGlobalDefaults}
                 >
-                  Reset global defaults
+                  Reset global
                 </button>
               </div>
             </div>
           </section>
           <section className={settingsCardSite}>
             <div className={settingsCardHead}>
-              <h2 className={settingsCardTitle}>This site</h2>
-              <p className={settingsCardMeta}>{siteMeta}</p>
+              <h2 className={settingsCardTitle}>This website</h2>
+              <p
+                className={
+                  siteDisabled
+                    ? settingsCardScopeSiteMuted
+                    : settingsCardScopeSite
+                }
+              >
+                {siteMeta}
+              </p>
             </div>
             <div className={settingsCardBody}>
               <SettingToggle
                 id="site-enabled"
-                label="Use site color"
-                description="When on, the site color overrides the default (Chrome sync when the popup closes if changed)."
-                checked={hostSettings.overrideEnabled}
-                onChange={setSiteOverrideEnabledPersist}
-                disabled={siteDisabled}
+                label="Enable"
+                description="Turn custom visited link colors on or off for this website."
+                checked={hostSettings.siteColorsEnabled}
+                onChange={setSiteColorsEnabledPersist}
+                disabled={siteControlsDisabled}
               />
               <ColorSetting
                 id="site-color"
                 label="Site color"
-                hint="Live preview while open; per-host Chrome sync when the popup closes."
+                hint="Leave unset to use the global color."
                 value={
                   hostSettings.highlightColor ?? defaultHighlightColor
                 }
                 onChange={setSiteHighlightColorPersist}
-                disabled={siteDisabled}
+                disabled={siteColorDisabled}
+                suppressProgrammaticPickerEcho={
+                  hostSettings.highlightColor === null
+                }
+                programmaticEchoResetKey={defaultHighlightColor}
               />
               <div className={settingsResetRow}>
                 <button
                   type="button"
                   className={settingsResetButton}
                   onClick={resetThisSiteOnly}
-                  disabled={siteDisabled}
+                  disabled={siteControlsDisabled}
                 >
-                  Reset this site only
+                  Reset this site
                 </button>
               </div>
             </div>

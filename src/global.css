@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+@source "../popup.html";
+@source "../ui-classes/**/*.ts";
+
 @theme {
   --font-sans: Poppins, ui-sans-serif, system-ui, sans-serif;
 

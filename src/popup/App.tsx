@@ -19,11 +19,7 @@ import {
   subscribeExtensionSyncedOptions,
 } from "@/extension-options-sync";
 
-import {
-  popupMainScroll,
-  popupShell,
-  popupStack,
-} from "../../ui-classes/popup-layout";
+import { popupShell, popupStack } from "../../ui-classes/popup-layout";
 import {
   settingsCardBody,
   settingsCardGlobal,
@@ -238,100 +234,98 @@ export function App({
   return (
     <div className={popupShell}>
       <Header />
-      <div className={popupMainScroll}>
-        <div className={popupStack}>
-          <section className={settingsCardGlobal}>
-            <div className={settingsCardHead}>
-              <h2 className={settingsCardTitle}>Global</h2>
-              <p className={settingsCardScopeGlobal}>All sites</p>
-            </div>
-            <div className={settingsCardBody}>
-              <SettingToggle
-                id="global-enabled"
-                label="Enable all sites"
-                description="Off stops highlighting on every site."
-                checked={masterEnabled}
-                onChange={setMasterEnabledPersist}
-              />
-              <ColorSetting
-                id="global-color"
-                label="Default color"
-                hint="Used when a site does not set its own color."
-                value={defaultHighlightColor}
-                onChange={setDefaultHighlightColorPersist}
-              />
-              <div className={settingsResetRow}>
-                <div className={settingsResetCopy}>
-                  <p className={toggleLabel}>Reset all</p>
-                  <p className={toggleDescription}>
-                    Undo global switch and color to built-in defaults.
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  className={settingsResetButton}
-                  onClick={resetGlobalDefaults}
-                >
-                  Reset all
-                </button>
+      <div className={popupStack}>
+        <section className={settingsCardGlobal}>
+          <div className={settingsCardHead}>
+            <h2 className={settingsCardTitle}>Global</h2>
+            <p className={settingsCardScopeGlobal}>All sites</p>
+          </div>
+          <div className={settingsCardBody}>
+            <SettingToggle
+              id="global-enabled"
+              label="Enable all sites"
+              description="Off stops highlighting on every site."
+              checked={masterEnabled}
+              onChange={setMasterEnabledPersist}
+            />
+            <ColorSetting
+              id="global-color"
+              label="Default color"
+              hint="Used when a site does not set its own color."
+              value={defaultHighlightColor}
+              onChange={setDefaultHighlightColorPersist}
+            />
+            <div className={settingsResetRow}>
+              <div className={settingsResetCopy}>
+                <p className={toggleLabel}>Reset all</p>
+                <p className={toggleDescription}>
+                  Undo global switch and color to built-in defaults.
+                </p>
               </div>
-            </div>
-          </section>
-          <section className={settingsCardSite}>
-            <div className={settingsCardHead}>
-              <h2 className={settingsCardTitle}>This site</h2>
-              <p
-                className={
-                  siteDisabled
-                    ? settingsCardScopeSiteMuted
-                    : settingsCardScopeSite
-                }
+              <button
+                type="button"
+                className={settingsResetButton}
+                onClick={resetGlobalDefaults}
               >
-                {siteMeta}
-              </p>
+                Reset all
+              </button>
             </div>
-            <div className={settingsCardBody}>
-              <SettingToggle
-                id="site-enabled"
-                label="Enable this site"
-                description="Off skips highlighting on this site only."
-                checked={hostSettings.siteColorsEnabled}
-                onChange={setSiteColorsEnabledPersist}
-                disabled={siteControlsDisabled}
-              />
-              <ColorSetting
-                id="site-color"
-                label="Site color"
-                hint="Starts like the default; change to override this site only."
-                value={
-                  hostSettings.highlightColor ?? defaultHighlightColor
-                }
-                onChange={setSiteHighlightColorPersist}
-                disabled={siteColorDisabled}
-                suppressProgrammaticPickerEcho={
-                  hostSettings.highlightColor === null
-                }
-                programmaticEchoResetKey={defaultHighlightColor}
-              />
-              <div className={settingsResetRow}>
-                <div className={settingsResetCopy}>
-                  <p className={toggleLabel}>Reset site</p>
-                  <p className={toggleDescription}>
-                    Remove this site&apos;s settings; follow global again.
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  className={settingsResetButton}
-                  onClick={resetThisSiteOnly}
-                  disabled={siteControlsDisabled}
-                >
-                  Reset site
-                </button>
+          </div>
+        </section>
+        <section className={settingsCardSite}>
+          <div className={settingsCardHead}>
+            <h2 className={settingsCardTitle}>This site</h2>
+            <p
+              className={
+                siteDisabled
+                  ? settingsCardScopeSiteMuted
+                  : settingsCardScopeSite
+              }
+            >
+              {siteMeta}
+            </p>
+          </div>
+          <div className={settingsCardBody}>
+            <SettingToggle
+              id="site-enabled"
+              label="Enable this site"
+              description="Off skips highlighting on this site only."
+              checked={hostSettings.siteColorsEnabled}
+              onChange={setSiteColorsEnabledPersist}
+              disabled={siteControlsDisabled}
+            />
+            <ColorSetting
+              id="site-color"
+              label="Site color"
+              hint="Starts like the default; change to override this site only."
+              value={
+                hostSettings.highlightColor ?? defaultHighlightColor
+              }
+              onChange={setSiteHighlightColorPersist}
+              disabled={siteColorDisabled}
+              suppressProgrammaticPickerEcho={
+                hostSettings.highlightColor === null
+              }
+              programmaticEchoResetKey={defaultHighlightColor}
+            />
+            <div className={settingsResetRow}>
+              <div className={settingsResetCopy}>
+                <p className={toggleLabel}>Reset site</p>
+                <p className={toggleDescription}>
+                  Remove this site&apos;s settings; follow global again.
+                </p>
               </div>
+              <button
+                type="button"
+                className={settingsResetButton}
+                onClick={resetThisSiteOnly}
+                disabled={siteControlsDisabled}
+              >
+                Reset site
+              </button>
             </div>
-          </section>
-        </div>
+          </div>
+        </section>
       </div>
       <Footer />
     </div>

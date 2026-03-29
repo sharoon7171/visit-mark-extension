@@ -1,5 +1,5 @@
 const cardFrame =
-  "overflow-hidden rounded-xl border border-border shadow-sm";
+  "shrink-0 overflow-hidden rounded-xl border border-border shadow-sm";
 
 export const settingsCardGlobal = `${cardFrame} bg-settings-globalCard`;
 

@@ -1,0 +1,22 @@
+{
+  "manifest_version": 3,
+  "permissions": ["storage", "activeTab"],
+  "name": "VisitedLinks",
+  "version": "1.0.8",
+  "description": "Settings UI for highlight preferences (sync and per-site).",
+  "icons": {
+    "16": "icons/extension-icon.png",
+    "32": "icons/extension-icon.png",
+    "48": "icons/extension-icon.png",
+    "128": "icons/extension-icon.png"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/extension-icon.png",
+      "32": "icons/extension-icon.png",
+      "48": "icons/extension-icon.png",
+      "128": "icons/extension-icon.png"
+    }
+  }
+}

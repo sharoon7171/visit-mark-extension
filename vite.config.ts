@@ -1,32 +1,52 @@
+import { copyFileSync, cpSync, existsSync } from "node:fs";
 import path from "node:path";
+import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 
 export default defineConfig({
   base: "./",
-  plugins: [react()],
+  plugins: [
+    tailwindcss(),
+    react(),
+    {
+      name: "copy-manifest",
+      closeBundle() {
+        const root = path.resolve(__dirname);
+        const dist = path.join(root, "dist");
+        copyFileSync(path.join(root, "manifest.json"), path.join(dist, "manifest.json"));
+        const iconsDir = path.join(root, "icons");
+        if (existsSync(iconsDir)) {
+          cpSync(iconsDir, path.join(dist, "icons"), { recursive: true });
+        }
+      },
+    },
+  ],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "src"),
     },
   },
-  publicDir: "public",
+  publicDir: false,
   build: {
     outDir: "dist",
     emptyOutDir: true,
     rollupOptions: {
       input: {
-        background: path.resolve(__dirname, "src/background/index.ts"),
-        content: path.resolve(__dirname, "src/content/index.ts"),
+        popup: path.resolve(__dirname, "popup.html"),
       },
       output: {
-        entryFileNames(chunk) {
-          if (chunk.name === "background") return "background.js";
-          if (chunk.name === "content") return "content.js";
-          return "[name]-[hash].js";
+        entryFileNames() {
+          return "popup.js";
         },
-        chunkFileNames: "[name]-[hash].js",
-        assetFileNames: "[name]-[hash][extname]",
+        chunkFileNames: "[name].js",
+        assetFileNames(assetInfo) {
+          const names = assetInfo.names ?? [];
+          if (names.some((n) => n.endsWith(".css"))) {
+            return "popup.css";
+          }
+          return "assets/[name][extname]";
+        },
       },
     },
   },

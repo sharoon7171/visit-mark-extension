@@ -1,3 +1,46 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@theme {
+  --font-sans: Poppins, ui-sans-serif, system-ui, sans-serif;
+
+  --color-surface: #f1f5f9;
+  --color-surface-raised: #ffffff;
+
+  --color-border: #e2e8f0;
+  --color-border-strong: #cbd5e1;
+
+  --color-foreground: #0f172a;
+  --color-foreground-muted: #64748b;
+  --color-foreground-subtle: #94a3b8;
+
+  --color-header-bg: #0f172a;
+  --color-header-border: #1e293b;
+  --color-header-fg: #f8fafc;
+  --color-header-fgMuted: #94a3b8;
+  --color-header-iconWell: #1e293b;
+  --color-header-iconRing: #334155;
+
+  --color-settings-globalCard: #ffffff;
+  --color-settings-siteCard: #e8e7e5;
+
+  --color-brand: #2563eb;
+  --color-brand-hover: #1d4ed8;
+
+  --color-switch-off: #e2e8f0;
+  --color-switch-on: #1e40af;
+
+  --radius-lg: 0.75rem;
+  --radius-full: 9999px;
+
+  --shadow-row: 0 1px 0 rgb(15 23 42 / 0.06);
+}
+
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentcolor);
+  }
+}

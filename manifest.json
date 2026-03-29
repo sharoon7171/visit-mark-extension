@@ -6,7 +6,7 @@
   },
   "name": "VisitedLinks",
   "version": "1.0.8",
-  "description": "Settings UI for highlight preferences (sync and per-site).",
+  "description": "Color for visited links. Synced; optional per-site.",
   "icons": {
     "16": "icons/extension-icon.png",
     "32": "icons/extension-icon.png",

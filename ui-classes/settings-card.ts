@@ -6,7 +6,7 @@ export const settingsCardGlobal = `${cardFrame} bg-settings-globalCard`;
 export const settingsCardSite = `${cardFrame} bg-settings-siteCard`;
 
 export const settingsCardHead =
-  "flex flex-col gap-2 border-b border-border px-4 py-4";
+  "flex flex-row flex-wrap items-center gap-2 border-b border-border px-4 py-4";
 
 export const settingsCardTitle =
   "min-w-0 text-lg font-bold leading-tight tracking-tight text-foreground";

@@ -35,7 +35,12 @@ import {
   settingsCardTitle,
 } from "../../ui-classes/settings-card";
 import {
+  toggleDescription,
+  toggleLabel,
+} from "../../ui-classes/setting-toggle";
+import {
   settingsResetButton,
+  settingsResetCopy,
   settingsResetRow,
 } from "../../ui-classes/settings-reset";
 
@@ -223,7 +228,7 @@ export function App({
     })();
   };
 
-  const siteMeta = initialHostname ? initialHostname : "No host";
+  const siteMeta = initialHostname ? initialHostname : "Not a webpage";
 
   const siteDisabled = !initialHostname;
   const siteControlsDisabled = siteDisabled || !masterEnabled;
@@ -238,37 +243,43 @@ export function App({
           <section className={settingsCardGlobal}>
             <div className={settingsCardHead}>
               <h2 className={settingsCardTitle}>Global</h2>
-              <p className={settingsCardScopeGlobal}>All websites</p>
+              <p className={settingsCardScopeGlobal}>All sites</p>
             </div>
             <div className={settingsCardBody}>
               <SettingToggle
                 id="global-enabled"
-                label="Enable"
-                description="Turn custom visited link colors on or off for all websites."
+                label="Enable all sites"
+                description="Off stops highlighting on every site."
                 checked={masterEnabled}
                 onChange={setMasterEnabledPersist}
               />
               <ColorSetting
                 id="global-color"
-                label="Global color"
-                hint="Default color when no site color is set."
+                label="Default color"
+                hint="Used when a site does not set its own color."
                 value={defaultHighlightColor}
                 onChange={setDefaultHighlightColorPersist}
               />
               <div className={settingsResetRow}>
+                <div className={settingsResetCopy}>
+                  <p className={toggleLabel}>Reset all</p>
+                  <p className={toggleDescription}>
+                    Undo global switch and color to built-in defaults.
+                  </p>
+                </div>
                 <button
                   type="button"
                   className={settingsResetButton}
                   onClick={resetGlobalDefaults}
                 >
-                  Reset global
+                  Reset all
                 </button>
               </div>
             </div>
           </section>
           <section className={settingsCardSite}>
             <div className={settingsCardHead}>
-              <h2 className={settingsCardTitle}>This website</h2>
+              <h2 className={settingsCardTitle}>This site</h2>
               <p
                 className={
                   siteDisabled
@@ -282,8 +293,8 @@ export function App({
             <div className={settingsCardBody}>
               <SettingToggle
                 id="site-enabled"
-                label="Enable"
-                description="Turn custom visited link colors on or off for this website."
+                label="Enable this site"
+                description="Off skips highlighting on this site only."
                 checked={hostSettings.siteColorsEnabled}
                 onChange={setSiteColorsEnabledPersist}
                 disabled={siteControlsDisabled}
@@ -291,7 +302,7 @@ export function App({
               <ColorSetting
                 id="site-color"
                 label="Site color"
-                hint="Leave unset to use the global color."
+                hint="Starts like the default; change to override this site only."
                 value={
                   hostSettings.highlightColor ?? defaultHighlightColor
                 }
@@ -303,13 +314,19 @@ export function App({
                 programmaticEchoResetKey={defaultHighlightColor}
               />
               <div className={settingsResetRow}>
+                <div className={settingsResetCopy}>
+                  <p className={toggleLabel}>Reset site</p>
+                  <p className={toggleDescription}>
+                    Remove this site&apos;s settings; follow global again.
+                  </p>
+                </div>
                 <button
                   type="button"
                   className={settingsResetButton}
                   onClick={resetThisSiteOnly}
                   disabled={siteControlsDisabled}
                 >
-                  Reset this site
+                  Reset site
                 </button>
               </div>
             </div>

@@ -3,6 +3,7 @@ node_modules
 
 # Build
 dist
+.tmp-vite-bg
 
 # OS
 .DS_Store

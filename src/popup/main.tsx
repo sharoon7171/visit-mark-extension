@@ -33,14 +33,14 @@ void (async () => {
   } catch {}
   const initialHostname = await activeTabHostname();
   const initialSyncedOptions = await loadExtensionSyncedOptions();
-  const { settings: initialHostSettings } = await loadHostSiteSettingsModel(
-    initialHostname ?? "",
-  );
+  const { settings: initialHostSettings, persisted: initialHostPersisted } =
+    await loadHostSiteSettingsModel(initialHostname ?? "");
   createRoot(el).render(
     <App
       initialSyncedOptions={initialSyncedOptions}
       initialHostname={initialHostname}
       initialHostSettings={initialHostSettings}
+      initialHostPersisted={initialHostPersisted}
     />,
   );
 })();

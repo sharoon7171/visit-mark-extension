@@ -6,6 +6,7 @@ import { parseHexColor } from "@/lib/hexColor";
 
 export type HostSiteSettings = {
   siteColorsEnabled: boolean;
+  customHighlightEnabled: boolean;
   highlightColor: string | null;
 };
 
@@ -13,6 +14,7 @@ const STORAGE_KEY = "vl_perHost";
 
 const defaultHostSiteSettings: HostSiteSettings = {
   siteColorsEnabled: true,
+  customHighlightEnabled: false,
   highlightColor: null,
 };
 
@@ -35,8 +37,18 @@ function parseHostEntry(raw: unknown): HostSiteSettings {
   } else if (typeof o.overrideEnabled === "boolean") {
     siteColorsEnabled = o.overrideEnabled;
   }
+  let customHighlightEnabled = defaultHostSiteSettings.customHighlightEnabled;
+  if (typeof o.customHighlightEnabled === "boolean") {
+    customHighlightEnabled = o.customHighlightEnabled;
+  } else if (highlightColor !== null) {
+    customHighlightEnabled = true;
+  }
+  if (customHighlightEnabled && highlightColor === null) {
+    customHighlightEnabled = false;
+  }
   return {
     siteColorsEnabled,
+    customHighlightEnabled,
     highlightColor,
   };
 }
@@ -93,8 +105,13 @@ async function loadMap(): Promise<Record<string, HostSiteSettings>> {
 function hostSiteSettingsEqual(a: HostSiteSettings, b: HostSiteSettings): boolean {
   return (
     a.siteColorsEnabled === b.siteColorsEnabled &&
+    a.customHighlightEnabled === b.customHighlightEnabled &&
     a.highlightColor === b.highlightColor
   );
+}
+
+export function hostSiteSettingsAreDefaults(s: HostSiteSettings): boolean {
+  return hostSiteSettingsEqual(s, defaultHostSiteSettings);
 }
 
 export type HostSiteSettingsModel = {
@@ -119,6 +136,7 @@ export async function loadHostSiteSettingsModel(
   return {
     settings: {
       siteColorsEnabled: defaultHostSiteSettings.siteColorsEnabled,
+      customHighlightEnabled: defaultHostSiteSettings.customHighlightEnabled,
       highlightColor: null,
     },
     persisted: false,
@@ -157,6 +175,7 @@ export async function flushPopupSyncedState(
     const map = await loadMap();
     map[input.hostname] = {
       siteColorsEnabled: input.currentHost.siteColorsEnabled,
+      customHighlightEnabled: input.currentHost.customHighlightEnabled,
       highlightColor: input.currentHost.highlightColor,
     };
     payload[STORAGE_KEY] = map;

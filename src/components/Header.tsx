@@ -25,8 +25,10 @@ export function Header() {
           />
         </span>
         <div className={headerTitles}>
-          <h1 className={headerTitle}>VisitedLinks</h1>
-          <p className={headerTagline}>Visited links</p>
+          <h1 className={headerTitle}>VisitMark</h1>
+          <p className={headerTagline}>
+            Highlight visited links with custom colors
+          </p>
         </div>
       </div>
     </header>

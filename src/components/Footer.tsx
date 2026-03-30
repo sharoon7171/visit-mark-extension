@@ -10,7 +10,7 @@ export function Footer() {
   return (
     <footer className={footerRoot}>
       <p className={footerCredit}>
-        Developed by{" "}
+        By{" "}
         <a
           className={footerCreditLink}
           href={SQ_TECH_URL}

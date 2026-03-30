@@ -4,9 +4,9 @@
   "background": {
     "service_worker": "background.js"
   },
-  "name": "VisitedLinks",
+  "name": "VisitMark - Highlight visited links with custom colors",
   "version": "1.0.8",
-  "description": "Color for visited links. Synced; optional per-site.",
+  "description": "Color visited links: one default everywhere, optional per-site overrides. Syncs with Chrome.",
   "icons": {
     "16": "icons/extension-icon.png",
     "32": "icons/extension-icon.png",

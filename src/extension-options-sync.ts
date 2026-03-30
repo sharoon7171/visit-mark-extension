@@ -15,6 +15,15 @@ const DEFAULTS: ExtensionSyncedOptions = {
   defaultHighlightColor: DEFAULT_VISITED_HEX,
 };
 
+export function extensionOptionsAreDefaults(
+  o: ExtensionSyncedOptions,
+): boolean {
+  return (
+    o.masterEnabled === DEFAULTS.masterEnabled &&
+    o.defaultHighlightColor === DEFAULTS.defaultHighlightColor
+  );
+}
+
 const SYNC_KEYS = Object.values(EXTENSION_SYNC_OPTION_KEYS);
 const SYNC_KEY_SET = new Set<string>(SYNC_KEYS);
 

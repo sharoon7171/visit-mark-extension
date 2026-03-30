@@ -1,6 +1,6 @@
 import {
-  type ExtensionSyncedOptions,
   EXTENSION_SYNC_OPTION_KEYS,
+  type ExtensionSyncedOptions,
 } from "@/extension-options-sync";
 import { parseHexColor } from "@/lib/hexColor";
 
@@ -133,14 +133,7 @@ export async function loadHostSiteSettingsModel(
   if (entry) {
     return { settings: { ...entry }, persisted: true };
   }
-  return {
-    settings: {
-      siteColorsEnabled: defaultHostSiteSettings.siteColorsEnabled,
-      customHighlightEnabled: defaultHostSiteSettings.customHighlightEnabled,
-      highlightColor: null,
-    },
-    persisted: false,
-  };
+  return { settings: { ...defaultHostSiteSettings }, persisted: false };
 }
 
 export type PopupSyncFlushPayload = {

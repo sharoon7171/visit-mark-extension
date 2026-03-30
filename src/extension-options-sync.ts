@@ -1,28 +1,19 @@
 import { DEFAULT_VISITED_HEX, parseHexColor } from "@/lib/hexColor";
 
-export type ExtensionSyncedOptions = {
-  masterEnabled: boolean;
-  defaultHighlightColor: string;
-};
-
 export const EXTENSION_SYNC_OPTION_KEYS = {
-  masterEnabled: "vl_masterEnabled",
   defaultHighlightColor: "vl_defaultHighlightColor",
+  masterEnabled: "vl_masterEnabled",
 } as const;
 
-const DEFAULTS: ExtensionSyncedOptions = {
-  masterEnabled: true,
-  defaultHighlightColor: DEFAULT_VISITED_HEX,
+export type ExtensionSyncedOptions = {
+  defaultHighlightColor: string;
+  masterEnabled: boolean;
 };
 
-export function extensionOptionsAreDefaults(
-  o: ExtensionSyncedOptions,
-): boolean {
-  return (
-    o.masterEnabled === DEFAULTS.masterEnabled &&
-    o.defaultHighlightColor === DEFAULTS.defaultHighlightColor
-  );
-}
+const DEFAULTS: ExtensionSyncedOptions = {
+  defaultHighlightColor: DEFAULT_VISITED_HEX,
+  masterEnabled: true,
+};
 
 const SYNC_KEYS = Object.values(EXTENSION_SYNC_OPTION_KEYS);
 const SYNC_KEY_SET = new Set<string>(SYNC_KEYS);
@@ -33,9 +24,18 @@ function fromRecord(raw: Record<string, unknown>): ExtensionSyncedOptions {
     raw[EXTENSION_SYNC_OPTION_KEYS.defaultHighlightColor],
   );
   return {
-    masterEnabled: typeof m === "boolean" ? m : DEFAULTS.masterEnabled,
     defaultHighlightColor: colorRaw ?? DEFAULTS.defaultHighlightColor,
+    masterEnabled: typeof m === "boolean" ? m : DEFAULTS.masterEnabled,
   };
+}
+
+export function extensionOptionsAreDefaults(
+  o: ExtensionSyncedOptions,
+): boolean {
+  return (
+    o.defaultHighlightColor === DEFAULTS.defaultHighlightColor &&
+    o.masterEnabled === DEFAULTS.masterEnabled
+  );
 }
 
 export async function loadExtensionSyncedOptions(): Promise<ExtensionSyncedOptions> {
@@ -45,9 +45,9 @@ export async function loadExtensionSyncedOptions(): Promise<ExtensionSyncedOptio
 
 export async function resetExtensionSyncedOptionsToDefaults(): Promise<void> {
   await chrome.storage.sync.set({
-    [EXTENSION_SYNC_OPTION_KEYS.masterEnabled]: DEFAULTS.masterEnabled,
     [EXTENSION_SYNC_OPTION_KEYS.defaultHighlightColor]:
       DEFAULTS.defaultHighlightColor,
+    [EXTENSION_SYNC_OPTION_KEYS.masterEnabled]: DEFAULTS.masterEnabled,
   });
 }
 

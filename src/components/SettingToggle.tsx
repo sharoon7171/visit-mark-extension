@@ -9,21 +9,21 @@ import {
 } from "../../ui-classes/setting-toggle";
 
 type SettingToggleProps = {
+  checked: boolean;
+  description?: string;
+  disabled?: boolean;
   id: string;
   label: string;
-  description?: string;
-  checked: boolean;
   onChange: (checked: boolean) => void;
-  disabled?: boolean;
 };
 
 export function SettingToggle({
+  checked,
+  description,
+  disabled = false,
   id,
   label,
-  description,
-  checked,
   onChange,
-  disabled = false,
 }: SettingToggleProps) {
   return (
     <div className={toggleRow}>

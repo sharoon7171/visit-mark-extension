@@ -6,6 +6,7 @@ import {
   rmSync,
 } from "node:fs";
 import path from "node:path";
+
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import { build, defineConfig } from "vite";

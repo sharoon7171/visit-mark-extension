@@ -37,10 +37,10 @@ void (async () => {
     await loadHostSiteSettingsModel(initialHostname ?? "");
   createRoot(el).render(
     <App
-      initialSyncedOptions={initialSyncedOptions}
-      initialHostname={initialHostname}
-      initialHostSettings={initialHostSettings}
       initialHostPersisted={initialHostPersisted}
+      initialHostSettings={initialHostSettings}
+      initialHostname={initialHostname}
+      initialSyncedOptions={initialSyncedOptions}
     />,
   );
 })();

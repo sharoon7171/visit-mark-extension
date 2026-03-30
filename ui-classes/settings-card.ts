@@ -1,7 +1,5 @@
-const cardFrameGlobal =
+export const settingsCardGlobal =
   "shrink-0 overflow-hidden rounded-xl border border-border bg-card-global font-sans shadow-card";
-
-export const settingsCardGlobal = cardFrameGlobal;
 
 export const settingsCardSite =
   "shrink-0 overflow-hidden rounded-xl border border-card-site-border bg-card-site-bg font-sans shadow-card";

@@ -8,14 +8,14 @@ import { SettingToggle } from "@/components/SettingToggle";
 import {
   clearHostSiteSettings,
   hostSiteSettingsAreDefaults,
-  type HostSiteSettings,
   loadHostSiteSettingsModel,
+  type HostSiteSettings,
   type PopupSyncFlushPayload,
 } from "@/extension-host-settings";
 import {
   type ExtensionSyncedOptions,
-  extensionOptionsAreDefaults,
   EXTENSION_SYNC_OPTION_KEYS,
+  extensionOptionsAreDefaults,
   loadExtensionSyncedOptions,
   resetExtensionSyncedOptionsToDefaults,
   subscribeExtensionSyncedOptions,
@@ -45,17 +45,17 @@ import {
 } from "../../ui-classes/settings-reset";
 
 type AppProps = {
-  initialSyncedOptions: ExtensionSyncedOptions;
-  initialHostname: string | null;
-  initialHostSettings: HostSiteSettings;
   initialHostPersisted: boolean;
+  initialHostSettings: HostSiteSettings;
+  initialHostname: string | null;
+  initialSyncedOptions: ExtensionSyncedOptions;
 };
 
 export function App({
-  initialSyncedOptions,
-  initialHostname,
-  initialHostSettings,
   initialHostPersisted,
+  initialHostSettings,
+  initialHostname,
+  initialSyncedOptions,
 }: AppProps) {
   const [masterEnabled, setMasterEnabled] = useState(
     initialSyncedOptions.masterEnabled,
@@ -199,8 +199,7 @@ export function App({
         return {
           ...prev,
           customHighlightEnabled: true,
-          highlightColor:
-            prev.highlightColor ?? defaultColorRef.current,
+          highlightColor: prev.highlightColor ?? defaultColorRef.current,
         };
       }
       return {
@@ -271,11 +270,10 @@ export function App({
   const siteCustomColorToggleDisabled =
     siteControlsDisabled || !hostSettings.siteColorsEnabled;
 
-  const showGlobalRestore =
-    !extensionOptionsAreDefaults({
-      masterEnabled,
-      defaultHighlightColor,
-    });
+  const showGlobalRestore = !extensionOptionsAreDefaults({
+    masterEnabled,
+    defaultHighlightColor,
+  });
   const showSiteRemove =
     Boolean(initialHostname) &&
     (hostPersisted || !hostSiteSettingsAreDefaults(hostSettings));
@@ -360,9 +358,7 @@ export function App({
                 id="site-color"
                 label="Color for this site"
                 hint="Overrides the color above."
-                value={
-                  hostSettings.highlightColor ?? defaultHighlightColor
-                }
+                value={hostSettings.highlightColor ?? defaultHighlightColor}
                 onChange={setSiteHighlightColorPersist}
               />
             ) : null}

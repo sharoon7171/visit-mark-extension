@@ -1,4 +1,3 @@
-import { useCallback } from "react";
 import { HexColorPicker } from "react-colorful";
 
 import { DEFAULT_VISITED_HEX } from "@/lib/hexColor";
@@ -17,12 +16,12 @@ import {
 } from "../../ui-classes/color-field";
 
 type ColorSettingProps = {
+  disabled?: boolean;
+  hint?: string;
   id: string;
   label: string;
-  hint?: string;
-  value: string;
   onChange: (value: string) => void;
-  disabled?: boolean;
+  value: string;
 };
 
 function toFullHex(raw: string): string {
@@ -41,23 +40,16 @@ function toFullHex(raw: string): string {
 }
 
 export function ColorSetting({
+  disabled = false,
+  hint,
   id,
   label,
-  hint,
-  value,
   onChange,
-  disabled = false,
+  value,
 }: ColorSettingProps) {
   const safe = toFullHex(value);
   const displayHex = safe.toUpperCase();
   const labelId = `${id}-label`;
-
-  const handlePickerChange = useCallback(
-    (next: string) => {
-      onChange(toFullHex(next));
-    },
-    [onChange],
-  );
 
   return (
     <div className={colorFieldRoot}>
@@ -89,7 +81,7 @@ export function ColorSetting({
         <HexColorPicker
           id={id}
           color={safe}
-          onChange={handlePickerChange}
+          onChange={(next) => onChange(toFullHex(next))}
           aria-labelledby={labelId}
           className={colorPickerRoot}
         />

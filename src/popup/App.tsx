@@ -9,6 +9,7 @@ import {
   clearHostSiteSettings,
   hostSiteSettingsAreDefaults,
   loadHostSiteSettingsModel,
+  persistHostSiteSettings,
   type HostSiteSettings,
   type PopupSyncFlushPayload,
 } from "@/extension-host-settings";
@@ -17,17 +18,22 @@ import {
   EXTENSION_SYNC_OPTION_KEYS,
   extensionOptionsAreDefaults,
   loadExtensionSyncedOptions,
+  persistExtensionSyncedOptions,
   resetExtensionSyncedOptionsToDefaults,
   subscribeExtensionSyncedOptions,
 } from "@/extension-options-sync";
+import { requestVisitmarkHighlightRefresh } from "@/lib/highlightRefreshMessage";
+import {
+  VISIT_TARGET_DEFINITIONS,
+  type VisitTargetId,
+} from "@/visited-link-targets";
 
 import { popupShell, popupStack } from "../../ui-classes/popup-layout";
 import {
   settingsCardBody,
-  settingsCardBodySite,
   settingsCardGlobal,
   settingsCardHead,
-  settingsCardHeadSite,
+  settingsCardSubhead,
   settingsCardScopeGlobal,
   settingsCardScopeSite,
   settingsCardScopeSiteMuted,
@@ -63,15 +69,34 @@ export function App({
   const [defaultHighlightColor, setDefaultHighlightColor] = useState(
     initialSyncedOptions.defaultHighlightColor,
   );
+  const [visitTargetToggles, setVisitTargetToggles] = useState(
+    initialSyncedOptions.visitTargetToggles,
+  );
+  const [highlightVisitedCssEnabled, setHighlightVisitedCssEnabled] = useState(
+    initialSyncedOptions.highlightVisitedCssEnabled,
+  );
+  const [highlightHistoryLinksEnabled, setHighlightHistoryLinksEnabled] =
+    useState(initialSyncedOptions.highlightHistoryLinksEnabled);
   const [hostSettings, setHostSettings] = useState(initialHostSettings);
   const [hostPersisted, setHostPersisted] = useState(initialHostPersisted);
 
   const defaultColorRef = useRef(initialSyncedOptions.defaultHighlightColor);
   const masterEnabledRef = useRef(initialSyncedOptions.masterEnabled);
+  const visitTargetTogglesRef = useRef(initialSyncedOptions.visitTargetToggles);
+  const highlightVisitedCssRef = useRef(
+    initialSyncedOptions.highlightVisitedCssEnabled,
+  );
+  const highlightHistoryLinksRef = useRef(
+    initialSyncedOptions.highlightHistoryLinksEnabled,
+  );
   const hostSettingsRef = useRef(initialHostSettings);
   const initialGlobalRef = useRef<ExtensionSyncedOptions>({
-    masterEnabled: initialSyncedOptions.masterEnabled,
     defaultHighlightColor: initialSyncedOptions.defaultHighlightColor,
+    highlightHistoryLinksEnabled:
+      initialSyncedOptions.highlightHistoryLinksEnabled,
+    highlightVisitedCssEnabled: initialSyncedOptions.highlightVisitedCssEnabled,
+    masterEnabled: initialSyncedOptions.masterEnabled,
+    visitTargetToggles: initialSyncedOptions.visitTargetToggles,
   });
   const initialHostRef = useRef<HostSiteSettings>({
     siteColorsEnabled: initialHostSettings.siteColorsEnabled,
@@ -81,7 +106,20 @@ export function App({
 
   defaultColorRef.current = defaultHighlightColor;
   masterEnabledRef.current = masterEnabled;
+  visitTargetTogglesRef.current = visitTargetToggles;
+  highlightVisitedCssRef.current = highlightVisitedCssEnabled;
+  highlightHistoryLinksRef.current = highlightHistoryLinksEnabled;
   hostSettingsRef.current = hostSettings;
+
+  const pushSyncedToStorage = () => {
+    void persistExtensionSyncedOptions({
+      defaultHighlightColor: defaultColorRef.current,
+      highlightHistoryLinksEnabled: highlightHistoryLinksRef.current,
+      highlightVisitedCssEnabled: highlightVisitedCssRef.current,
+      masterEnabled: masterEnabledRef.current,
+      visitTargetToggles: visitTargetTogglesRef.current,
+    });
+  };
 
   const portRef = useRef<chrome.runtime.Port | null>(null);
 
@@ -101,13 +139,13 @@ export function App({
     }
     const payload: PopupSyncFlushPayload = {
       hostname: initialHostname,
-      initialGlobal: {
-        masterEnabled: initialGlobalRef.current.masterEnabled,
-        defaultHighlightColor: initialGlobalRef.current.defaultHighlightColor,
-      },
+      initialGlobal: { ...initialGlobalRef.current },
       currentGlobal: {
-        masterEnabled: masterEnabledRef.current,
         defaultHighlightColor: defaultColorRef.current,
+        highlightHistoryLinksEnabled: highlightHistoryLinksRef.current,
+        highlightVisitedCssEnabled: highlightVisitedCssRef.current,
+        masterEnabled: masterEnabledRef.current,
+        visitTargetToggles: visitTargetTogglesRef.current,
       },
       initialHost: {
         siteColorsEnabled: initialHostRef.current.siteColorsEnabled,
@@ -125,10 +163,7 @@ export function App({
 
   useEffect(() => {
     return subscribeExtensionSyncedOptions((next, changedKeys) => {
-      initialGlobalRef.current = {
-        masterEnabled: next.masterEnabled,
-        defaultHighlightColor: next.defaultHighlightColor,
-      };
+      initialGlobalRef.current = { ...next };
       if (changedKeys.includes(EXTENSION_SYNC_OPTION_KEYS.masterEnabled)) {
         setMasterEnabled(next.masterEnabled);
         masterEnabledRef.current = next.masterEnabled;
@@ -137,6 +172,28 @@ export function App({
         changedKeys.includes(EXTENSION_SYNC_OPTION_KEYS.defaultHighlightColor)
       ) {
         setDefaultHighlightColor(next.defaultHighlightColor);
+      }
+      if (
+        changedKeys.includes(EXTENSION_SYNC_OPTION_KEYS.visitTargetToggles)
+      ) {
+        setVisitTargetToggles(next.visitTargetToggles);
+        visitTargetTogglesRef.current = next.visitTargetToggles;
+      }
+      if (
+        changedKeys.includes(
+          EXTENSION_SYNC_OPTION_KEYS.highlightVisitedCssEnabled,
+        )
+      ) {
+        setHighlightVisitedCssEnabled(next.highlightVisitedCssEnabled);
+        highlightVisitedCssRef.current = next.highlightVisitedCssEnabled;
+      }
+      if (
+        changedKeys.includes(
+          EXTENSION_SYNC_OPTION_KEYS.highlightHistoryLinksEnabled,
+        )
+      ) {
+        setHighlightHistoryLinksEnabled(next.highlightHistoryLinksEnabled);
+        highlightHistoryLinksRef.current = next.highlightHistoryLinksEnabled;
       }
     });
   }, []);
@@ -173,21 +230,48 @@ export function App({
   const setMasterEnabledPersist = (checked: boolean) => {
     setMasterEnabled(checked);
     masterEnabledRef.current = checked;
+    pushSyncedToStorage();
   };
 
   const setDefaultHighlightColorPersist = (value: string) => {
     setDefaultHighlightColor(value);
     defaultColorRef.current = value;
+    pushSyncedToStorage();
+  };
+
+  const setVisitTargetTogglePersist = (id: VisitTargetId, checked: boolean) => {
+    setVisitTargetToggles((prev) => {
+      const next = { ...prev, [id]: checked };
+      visitTargetTogglesRef.current = next;
+      pushSyncedToStorage();
+      return next;
+    });
+  };
+
+  const setHighlightVisitedCssPersist = (checked: boolean) => {
+    setHighlightVisitedCssEnabled(checked);
+    highlightVisitedCssRef.current = checked;
+    pushSyncedToStorage();
+  };
+
+  const setHighlightHistoryLinksPersist = (checked: boolean) => {
+    setHighlightHistoryLinksEnabled(checked);
+    highlightHistoryLinksRef.current = checked;
+    pushSyncedToStorage();
   };
 
   const setSiteColorsEnabledPersist = (checked: boolean) => {
     if (!initialHostname) {
       return;
     }
-    setHostSettings((prev) => ({
-      ...prev,
-      siteColorsEnabled: checked,
-    }));
+    setHostSettings((prev) => {
+      const next = { ...prev, siteColorsEnabled: checked };
+      hostSettingsRef.current = next;
+      void persistHostSiteSettings(initialHostname, next).then(() => {
+        requestVisitmarkHighlightRefresh();
+      });
+      return next;
+    });
   };
 
   const setCustomHighlightEnabledPersist = (checked: boolean) => {
@@ -195,17 +279,24 @@ export function App({
       return;
     }
     setHostSettings((prev) => {
+      let next: HostSiteSettings;
       if (checked) {
-        return {
+        next = {
           ...prev,
           customHighlightEnabled: true,
           highlightColor: prev.highlightColor ?? defaultColorRef.current,
         };
+      } else {
+        next = {
+          ...prev,
+          customHighlightEnabled: false,
+        };
       }
-      return {
-        ...prev,
-        customHighlightEnabled: false,
-      };
+      hostSettingsRef.current = next;
+      void persistHostSiteSettings(initialHostname, next).then(() => {
+        requestVisitmarkHighlightRefresh();
+      });
+      return next;
     });
   };
 
@@ -213,10 +304,14 @@ export function App({
     if (!initialHostname) {
       return;
     }
-    setHostSettings((prev) => ({
-      ...prev,
-      highlightColor: value,
-    }));
+    setHostSettings((prev) => {
+      const next = { ...prev, highlightColor: value };
+      hostSettingsRef.current = next;
+      void persistHostSiteSettings(initialHostname, next).then(() => {
+        requestVisitmarkHighlightRefresh();
+      });
+      return next;
+    });
   };
 
   const resetGlobalDefaults = () => {
@@ -225,12 +320,15 @@ export function App({
       const next = await loadExtensionSyncedOptions();
       setMasterEnabled(next.masterEnabled);
       setDefaultHighlightColor(next.defaultHighlightColor);
+      setVisitTargetToggles(next.visitTargetToggles);
+      setHighlightVisitedCssEnabled(next.highlightVisitedCssEnabled);
+      setHighlightHistoryLinksEnabled(next.highlightHistoryLinksEnabled);
       defaultColorRef.current = next.defaultHighlightColor;
       masterEnabledRef.current = next.masterEnabled;
-      initialGlobalRef.current = {
-        masterEnabled: next.masterEnabled,
-        defaultHighlightColor: next.defaultHighlightColor,
-      };
+      visitTargetTogglesRef.current = next.visitTargetToggles;
+      highlightVisitedCssRef.current = next.highlightVisitedCssEnabled;
+      highlightHistoryLinksRef.current = next.highlightHistoryLinksEnabled;
+      initialGlobalRef.current = { ...next };
       if (initialHostname) {
         const { settings, persisted } =
           await loadHostSiteSettingsModel(initialHostname);
@@ -251,6 +349,7 @@ export function App({
     }
     void (async () => {
       await clearHostSiteSettings(initialHostname);
+      requestVisitmarkHighlightRefresh();
       const { settings, persisted } =
         await loadHostSiteSettingsModel(initialHostname);
       setHostSettings(settings);
@@ -263,7 +362,7 @@ export function App({
     })();
   };
 
-  const siteMeta = initialHostname ? initialHostname : "Not a web page";
+  const siteMeta = initialHostname ? initialHostname : "No active page";
 
   const siteDisabled = !initialHostname;
   const siteControlsDisabled = siteDisabled || !masterEnabled;
@@ -271,8 +370,11 @@ export function App({
     siteControlsDisabled || !hostSettings.siteColorsEnabled;
 
   const showGlobalRestore = !extensionOptionsAreDefaults({
-    masterEnabled,
     defaultHighlightColor,
+    highlightHistoryLinksEnabled,
+    highlightVisitedCssEnabled,
+    masterEnabled,
+    visitTargetToggles,
   });
   const showSiteRemove =
     Boolean(initialHostname) &&
@@ -285,20 +387,39 @@ export function App({
         <section className={settingsCardGlobal}>
           <div className={settingsCardHead}>
             <h2 className={settingsCardTitle}>All sites</h2>
-            <p className={settingsCardScopeGlobal}>Default</p>
+            <p className={settingsCardScopeGlobal}>Default options</p>
           </div>
           <div className={settingsCardBody}>
             <SettingToggle
               id="global-enabled"
-              label="Extension"
-              description="Off: normal visited links everywhere."
+              label="Visited link colors"
+              description="Enable to highlight visited links with your colors. Disable to use the browser default on every site."
               checked={masterEnabled}
               onChange={setMasterEnabledPersist}
             />
+            <p className={settingsCardSubhead} id="detection-heading">
+              Detection
+            </p>
+            <SettingToggle
+              id="global-visited-css"
+              label="Browser visited state"
+              description="Enable to respect links the browser already marks as visited."
+              checked={highlightVisitedCssEnabled}
+              onChange={setHighlightVisitedCssPersist}
+              disabled={!masterEnabled}
+            />
+            <SettingToggle
+              id="global-history-urls"
+              label="Browsing history"
+              description="Enable to treat URLs in your history as visited, including when history is synced."
+              checked={highlightHistoryLinksEnabled}
+              onChange={setHighlightHistoryLinksPersist}
+              disabled={!masterEnabled}
+            />
             <ColorSetting
               id="global-color"
-              label="Visited color"
-              hint="Used on every site unless you set one below."
+              label="Default color"
+              hint="Used everywhere unless a site sets its own."
               value={defaultHighlightColor}
               onChange={setDefaultHighlightColorPersist}
             />
@@ -307,7 +428,7 @@ export function App({
                 <div className={settingsResetCopy}>
                   <p className={toggleLabel}>Restore defaults</p>
                   <p className={toggleDescription}>
-                    Turn the extension on and reset the color.
+                    Reset global colors and detection to their default values.
                   </p>
                 </div>
                 <button
@@ -322,7 +443,7 @@ export function App({
           </div>
         </section>
         <section className={settingsCardSite}>
-          <div className={settingsCardHeadSite}>
+          <div className={settingsCardHead}>
             <h2 className={settingsCardTitle}>This site</h2>
             <p
               className={
@@ -334,19 +455,19 @@ export function App({
               {siteMeta}
             </p>
           </div>
-          <div className={settingsCardBodySite}>
+          <div className={settingsCardBody}>
             <SettingToggle
               id="site-enabled"
-              label="Use extension here"
-              description="Off: this site keeps normal visited links."
+              label="This site"
+              description="Turn on to style visited links here. Turn off so this extension does not change link colors on this site."
               checked={hostSettings.siteColorsEnabled}
               onChange={setSiteColorsEnabledPersist}
               disabled={siteControlsDisabled}
             />
             <SettingToggle
               id="site-custom-color"
-              label="Custom color here"
-              description="Pick a color only for this site."
+              label="Site-specific color"
+              description="Enable to choose a highlight color that applies only to this site."
               checked={hostSettings.customHighlightEnabled}
               onChange={setCustomHighlightEnabledPersist}
               disabled={siteCustomColorToggleDisabled}
@@ -357,7 +478,7 @@ export function App({
               <ColorSetting
                 id="site-color"
                 label="Color for this site"
-                hint="Overrides the color above."
+                hint="Overrides the default color on this site only."
                 value={hostSettings.highlightColor ?? defaultHighlightColor}
                 onChange={setSiteHighlightColorPersist}
               />
@@ -365,9 +486,9 @@ export function App({
             {showSiteRemove ? (
               <div className={settingsResetRow}>
                 <div className={settingsResetCopy}>
-                  <p className={toggleLabel}>Forget this site</p>
+                  <p className={toggleLabel}>Remove site settings</p>
                   <p className={toggleDescription}>
-                    Drop saved settings and use the defaults again.
+                    Deletes saved options for this site so defaults apply again.
                   </p>
                 </div>
                 <button
@@ -380,6 +501,25 @@ export function App({
                 </button>
               </div>
             ) : null}
+          </div>
+        </section>
+        <section className={settingsCardGlobal}>
+          <div className={settingsCardHead}>
+            <h2 className={settingsCardTitle}>Which links to include</h2>
+            <p className={settingsCardScopeGlobal}>All sites</p>
+          </div>
+          <div className={settingsCardBody}>
+            {VISIT_TARGET_DEFINITIONS.map((def) => (
+              <SettingToggle
+                key={def.id}
+                id={`target-${def.id}`}
+                label={def.label}
+                description={def.description}
+                checked={visitTargetToggles[def.id]}
+                onChange={(c) => setVisitTargetTogglePersist(def.id, c)}
+                disabled={!masterEnabled}
+              />
+            ))}
           </div>
         </section>
       </div>

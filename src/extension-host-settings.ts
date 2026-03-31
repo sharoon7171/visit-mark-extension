@@ -2,6 +2,10 @@ import {
   EXTENSION_SYNC_OPTION_KEYS,
   type ExtensionSyncedOptions,
 } from "@/extension-options-sync";
+import {
+  visitTargetTogglesEqual,
+  type VisitTargetToggles,
+} from "@/visited-link-targets";
 import { parseHexColor } from "@/lib/hexColor";
 
 export type HostSiteSettings = {
@@ -12,7 +16,7 @@ export type HostSiteSettings = {
 
 const STORAGE_KEY = "vl_perHost";
 
-const defaultHostSiteSettings: HostSiteSettings = {
+export const defaultHostSiteSettings: HostSiteSettings = {
   siteColorsEnabled: true,
   customHighlightEnabled: false,
   highlightColor: null,
@@ -88,6 +92,28 @@ function stripLegacyFollowGlobalEntries(raw: Record<string, unknown>): {
   return { next, changed };
 }
 
+export async function loadPerHostSiteSettingsMap(): Promise<
+  Record<string, HostSiteSettings>
+> {
+  return loadMap();
+}
+
+export async function persistHostSiteSettings(
+  hostname: string,
+  settings: HostSiteSettings,
+): Promise<void> {
+  if (!hostname) {
+    return;
+  }
+  const map = await loadMap();
+  map[hostname] = {
+    customHighlightEnabled: settings.customHighlightEnabled,
+    highlightColor: settings.highlightColor,
+    siteColorsEnabled: settings.siteColorsEnabled,
+  };
+  await chrome.storage.sync.set({ [STORAGE_KEY]: map });
+}
+
 async function loadMap(): Promise<Record<string, HostSiteSettings>> {
   const syncBag = await chrome.storage.sync.get(STORAGE_KEY);
   const rawRoot = syncBag[STORAGE_KEY];
@@ -114,7 +140,7 @@ export function hostSiteSettingsAreDefaults(s: HostSiteSettings): boolean {
   return hostSiteSettingsEqual(s, defaultHostSiteSettings);
 }
 
-export type HostSiteSettingsModel = {
+type HostSiteSettingsModel = {
   settings: HostSiteSettings;
   persisted: boolean;
 };
@@ -149,17 +175,26 @@ export async function flushPopupSyncedState(
 ): Promise<void> {
   const payload: Record<
     string,
-    boolean | string | Record<string, HostSiteSettings>
+    boolean | string | VisitTargetToggles | Record<string, HostSiteSettings>
   > = {};
   const cg = input.currentGlobal;
   const ig = input.initialGlobal;
   if (
     cg.masterEnabled !== ig.masterEnabled ||
-    cg.defaultHighlightColor !== ig.defaultHighlightColor
+    cg.defaultHighlightColor !== ig.defaultHighlightColor ||
+    cg.highlightHistoryLinksEnabled !== ig.highlightHistoryLinksEnabled ||
+    cg.highlightVisitedCssEnabled !== ig.highlightVisitedCssEnabled ||
+    !visitTargetTogglesEqual(cg.visitTargetToggles, ig.visitTargetToggles)
   ) {
     payload[EXTENSION_SYNC_OPTION_KEYS.masterEnabled] = cg.masterEnabled;
     payload[EXTENSION_SYNC_OPTION_KEYS.defaultHighlightColor] =
       cg.defaultHighlightColor;
+    payload[EXTENSION_SYNC_OPTION_KEYS.highlightHistoryLinksEnabled] =
+      cg.highlightHistoryLinksEnabled;
+    payload[EXTENSION_SYNC_OPTION_KEYS.highlightVisitedCssEnabled] =
+      cg.highlightVisitedCssEnabled;
+    payload[EXTENSION_SYNC_OPTION_KEYS.visitTargetToggles] =
+      cg.visitTargetToggles;
   }
   if (
     input.hostname &&

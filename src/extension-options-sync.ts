@@ -1,18 +1,33 @@
 import { DEFAULT_VISITED_HEX, parseHexColor } from "@/lib/hexColor";
+import {
+  defaultVisitTargetToggles,
+  parseVisitTargetToggles,
+  visitTargetTogglesEqual,
+  type VisitTargetToggles,
+} from "@/visited-link-targets";
 
 export const EXTENSION_SYNC_OPTION_KEYS = {
   defaultHighlightColor: "vl_defaultHighlightColor",
+  highlightHistoryLinksEnabled: "vl_highlightHistoryLinksEnabled",
+  highlightVisitedCssEnabled: "vl_highlightVisitedCssEnabled",
   masterEnabled: "vl_masterEnabled",
+  visitTargetToggles: "vl_visitTargetToggles",
 } as const;
 
 export type ExtensionSyncedOptions = {
   defaultHighlightColor: string;
+  highlightHistoryLinksEnabled: boolean;
+  highlightVisitedCssEnabled: boolean;
   masterEnabled: boolean;
+  visitTargetToggles: VisitTargetToggles;
 };
 
 const DEFAULTS: ExtensionSyncedOptions = {
   defaultHighlightColor: DEFAULT_VISITED_HEX,
+  highlightHistoryLinksEnabled: true,
+  highlightVisitedCssEnabled: true,
   masterEnabled: true,
+  visitTargetToggles: defaultVisitTargetToggles(),
 };
 
 const SYNC_KEYS = Object.values(EXTENSION_SYNC_OPTION_KEYS);
@@ -23,9 +38,18 @@ function fromRecord(raw: Record<string, unknown>): ExtensionSyncedOptions {
   const colorRaw = parseHexColor(
     raw[EXTENSION_SYNC_OPTION_KEYS.defaultHighlightColor],
   );
+  const vcss = raw[EXTENSION_SYNC_OPTION_KEYS.highlightVisitedCssEnabled];
+  const hist = raw[EXTENSION_SYNC_OPTION_KEYS.highlightHistoryLinksEnabled];
   return {
     defaultHighlightColor: colorRaw ?? DEFAULTS.defaultHighlightColor,
+    highlightHistoryLinksEnabled:
+      typeof hist === "boolean" ? hist : DEFAULTS.highlightHistoryLinksEnabled,
+    highlightVisitedCssEnabled:
+      typeof vcss === "boolean" ? vcss : DEFAULTS.highlightVisitedCssEnabled,
     masterEnabled: typeof m === "boolean" ? m : DEFAULTS.masterEnabled,
+    visitTargetToggles: parseVisitTargetToggles(
+      raw[EXTENSION_SYNC_OPTION_KEYS.visitTargetToggles],
+    ),
   };
 }
 
@@ -34,7 +58,10 @@ export function extensionOptionsAreDefaults(
 ): boolean {
   return (
     o.defaultHighlightColor === DEFAULTS.defaultHighlightColor &&
-    o.masterEnabled === DEFAULTS.masterEnabled
+    o.highlightHistoryLinksEnabled === DEFAULTS.highlightHistoryLinksEnabled &&
+    o.highlightVisitedCssEnabled === DEFAULTS.highlightVisitedCssEnabled &&
+    o.masterEnabled === DEFAULTS.masterEnabled &&
+    visitTargetTogglesEqual(o.visitTargetToggles, DEFAULTS.visitTargetToggles)
   );
 }
 
@@ -47,7 +74,27 @@ export async function resetExtensionSyncedOptionsToDefaults(): Promise<void> {
   await chrome.storage.sync.set({
     [EXTENSION_SYNC_OPTION_KEYS.defaultHighlightColor]:
       DEFAULTS.defaultHighlightColor,
+    [EXTENSION_SYNC_OPTION_KEYS.highlightHistoryLinksEnabled]:
+      DEFAULTS.highlightHistoryLinksEnabled,
+    [EXTENSION_SYNC_OPTION_KEYS.highlightVisitedCssEnabled]:
+      DEFAULTS.highlightVisitedCssEnabled,
     [EXTENSION_SYNC_OPTION_KEYS.masterEnabled]: DEFAULTS.masterEnabled,
+    [EXTENSION_SYNC_OPTION_KEYS.visitTargetToggles]:
+      DEFAULTS.visitTargetToggles,
+  });
+}
+
+export async function persistExtensionSyncedOptions(
+  o: ExtensionSyncedOptions,
+): Promise<void> {
+  await chrome.storage.sync.set({
+    [EXTENSION_SYNC_OPTION_KEYS.defaultHighlightColor]: o.defaultHighlightColor,
+    [EXTENSION_SYNC_OPTION_KEYS.highlightHistoryLinksEnabled]:
+      o.highlightHistoryLinksEnabled,
+    [EXTENSION_SYNC_OPTION_KEYS.highlightVisitedCssEnabled]:
+      o.highlightVisitedCssEnabled,
+    [EXTENSION_SYNC_OPTION_KEYS.masterEnabled]: o.masterEnabled,
+    [EXTENSION_SYNC_OPTION_KEYS.visitTargetToggles]: o.visitTargetToggles,
   });
 }
 

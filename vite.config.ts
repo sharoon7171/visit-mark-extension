@@ -30,6 +30,7 @@ async function bundleServiceWorker(): Promise<void> {
       },
       build: {
         emptyOutDir: true,
+        minify: false,
         outDir: tmp,
         lib: {
           entry: path.join(root, "src/background/index.ts"),

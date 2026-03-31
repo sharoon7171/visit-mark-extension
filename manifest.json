@@ -1,25 +1,27 @@
 {
   "manifest_version": 3,
-  "permissions": ["storage", "activeTab"],
-  "background": {
-    "service_worker": "background.js"
-  },
   "name": "VisitMark - Highlight visited links with custom colors",
   "version": "1.0.8",
-  "description": "Color visited links: one default everywhere, optional per-site overrides. Syncs with Chrome.",
+  "description": "VisitMark highlights visited links in your chosen colors. Global default and site specific appearance. Settings sync with Chrome.",
   "icons": {
     "16": "icons/extension-icon.png",
     "32": "icons/extension-icon.png",
     "48": "icons/extension-icon.png",
     "128": "icons/extension-icon.png"
   },
+  "background": {
+    "service_worker": "background.js"
+  },
   "action": {
-    "default_popup": "popup.html",
-    "default_icon": {
-      "16": "icons/extension-icon.png",
-      "32": "icons/extension-icon.png",
-      "48": "icons/extension-icon.png",
-      "128": "icons/extension-icon.png"
-    }
-  }
+    "default_icon": "icons/extension-icon.png",
+    "default_popup": "popup.html"
+  },
+  "permissions": [
+    "history",
+    "scripting",
+    "storage",
+    "tabs",
+    "webNavigation"
+  ],
+  "host_permissions": ["http://*/*", "https://*/*"]
 }

@@ -9,11 +9,22 @@ export const designColors = {
     muted: "#eff6ff",
   },
   card: {
-    global: "#ffffff",
+    border: "#cbd5e1",
+    head: "#f1f5f9",
+    bodyWell: "#f8fafc",
+    global: {
+      bg: "#f8fafc",
+    },
     site: {
-      bg: "#fafafa",
-      border: "#e5e5e5",
-      head: "#f5f5f5",
+      bg: "#f8fafc",
+    },
+    row: {
+      bg: "#ffffff",
+      border: "#e4e9f0",
+    },
+    reset: {
+      bg: "#f8fafc",
+      border: "#cbd5e1",
     },
   },
   foreground: {

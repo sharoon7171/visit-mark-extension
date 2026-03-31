@@ -1,0 +1,201 @@
+CHROME WEB STORE LISTING (VisitMark)
+Copy the text between each pair of separator lines (single purpose; history, scripting, storage, tabs, web navigation, and host permission justifications; long description). Do not include the separator lines in the store.
+
+================================================================================
+SINGLE PURPOSE
+================================================================================
+
+SINGLE PURPOSE
+----------------
+Chrome Web Store: an extension must have a single purpose that is narrow and easy to understand.
+
+VisitMark does one thing: make visited links easier to see with your highlight colors on web pages. The background service worker refreshes styling when tabs finish loading, you switch tabs, single-page apps change the URL, or history updates. It uses chrome.scripting to inject visited-link CSS and, when enabled, to read hrefs, match against Chrome history, and mark links in the page. The pop-up only edits global and per-host colors, detection toggles, and link-pattern options, using tabs.query for the active tab hostname. chrome.storage (sync) saves settings; host permissions are http and https only. webNavigation and tabs events re-apply highlights per tab; history listeners refresh after visits are added or removed. No unrelated tools beyond visited-link styling.
+
+Learn more: https://developer.chrome.com/docs/webstore/program-policies/quality-guidelines
+
+================================================================================
+HISTORY PERMISSION JUSTIFICATION
+================================================================================
+
+VisitMark uses the history permission for “Browsing history” visited-link highlighting. You can disable that mode in the pop-up.
+
+With it on, the extension reads hrefs from links already on the open page, normalizes them, and calls chrome.history.getVisits only for those URLs to see if they appear in your history. It never reads your full history list or unrelated addresses. Matching stays on your device; nothing is sent to the developer’s servers.
+
+chrome.history.onVisited and chrome.history.onVisitRemoved refresh on-page highlights when history changes.
+
+With browsing-history mode off, getVisits is not used for that feature (event listeners may still exist because the permission is declared).
+
+================================================================================
+SCRIPTING PERMISSION JUSTIFICATION
+================================================================================
+
+VisitMark uses the scripting permission only for visited-link styling on http and https tabs where Chrome allows injection.
+
+The extension uses chrome.scripting.insertCSS and removeCSS to inject or withdraw a stylesheet from your colors and toggles. CSS is removed when highlighting is off or the page is not injectable.
+
+It uses chrome.scripting.executeScript only with bundled functions (not remote code): collect anchor hrefs for history matching when needed; apply a data attribute and color to matched links; clear marks on cleanup or setting changes. All work stays on your device; nothing is sent to the developer’s servers.
+
+================================================================================
+STORAGE PERMISSION JUSTIFICATION
+================================================================================
+
+VisitMark uses the storage permission to save your settings with chrome.storage.sync: global options (colors, on/off, detection toggles, which link patterns to include) and a map of per-website overrides. chrome.storage.onChanged listeners keep the pop-up in step when options change and let the background worker refresh highlights on open tabs. Values stay in Chrome (and sync to your Google account only if you use Chrome sync); VisitMark does not upload storage data to the developer’s servers.
+
+================================================================================
+TABS PERMISSION JUSTIFICATION
+================================================================================
+
+VisitMark uses the tabs permission so the background worker can find open tabs, detect when a tab finishes loading or you switch tabs, and apply or clear visited-link styling on the correct tab. It listens for tabs removed to drop internal tracking. The pop-up calls tabs.query for the active tab in the current window to read the hostname for “This site” controls. Tab URLs and page data are not sent to the developer; they are used only inside your browser for this feature.
+
+================================================================================
+WEB NAVIGATION PERMISSION JUSTIFICATION
+================================================================================
+
+VisitMark uses the webNavigation permission only for chrome.webNavigation.onHistoryStateUpdated on the top-level frame. Many sites are single-page apps that change the address without a full reload; that event tells the extension to re-run its highlight logic for the new URL so visited styling stays correct. It is not used for broad tracking of where you browse.
+
+================================================================================
+HOST PERMISSION JUSTIFICATION
+================================================================================
+
+VisitMark requests host permission for http://*/* and https://*/* so chrome.scripting can inject or remove visited-link CSS and bundled scripts on the web pages where the feature runs. Chrome requires host access for those APIs on ordinary sites. The extension does not use this access to scrape unrelated content or send page data to the developer’s servers; it is limited to applying visited-link appearance.
+
+================================================================================
+LONG DESCRIPTION (detailed listing field under screenshots)
+================================================================================
+
+OVERVIEW
+--------
+VisitMark is a Chrome extension that makes visited links easier to see. You pick highlight colors instead of relying only on the browser’s default visited styling. On busy pages—search results, forums, docs, news—you can tell at a glance which links you already opened.
+
+
+WHO IT’S FOR
+------------
+• Heavy readers, researchers, and shoppers who revisit the same sites often
+• Students and professionals working from long pages of links and references
+• Anyone who wants visited links to stand out more clearly in Google Chrome
+
+
+MAIN BENEFITS
+-------------
+• Custom colors for visited links, with a default for the whole web
+• Per-site on/off and optional color just for the current site
+• Choose how “visited” is detected: browser state, browsing history, or both
+• Fine-grained toggles for real-world page layouts (nav, themed classes, nested text)
+• Options sync when you’re signed in to Chrome (same profile across devices)
+• Simple pop-up labels so you know what each switch does
+
+
+HOW TO GET STARTED
+------------------
+1. Install VisitMark and pin it to the toolbar if you want one-click access.
+2. Open the pop-up, turn on visited link colors, and pick a default color.
+3. Visit a few pages, follow links, go back—visited links should stand out.
+4. If one site feels too busy, turn highlighting off for that site only or adjust link categories.
+
+
+GLOBAL SETTINGS (“ALL SITES”)
+-----------------------------
+• Visited link colors: master switch for the whole extension
+• Default color: used everywhere unless a site has its own color
+• Restore defaults: resets global options when you want a clean slate
+
+
+DETECTION (HOW “VISITED” IS DECIDED)
+------------------------------------
+• Browser visited state — respects links Chrome already treats as visited; great for normal hyperlinks.
+• Browsing history — can treat URLs in your history as visited when a page’s visited signal is unreliable; optional, and works with Chrome history sync the way Chrome already does.
+• You can use one mode or both, depending on what feels right for the sites you use.
+
+
+THIS SITE (PER-WEBSITE)
+-----------------------
+• Turn styling on or off for only the site you’re on, without changing global defaults.
+• Optional site-only highlight color for dark themes, busy layouts, or strong branding.
+• Remove site settings in one step to fall back to your global default.
+
+
+WHICH LINKS TO INCLUDE
+----------------------
+• Standard links — ordinary links and elements exposed as links.
+• Regions and layout — links in nav, header, footer, article, and main areas.
+• Themed link classes — common class-based link styling on modern sites.
+• Inner formatting — bold, italic, headings, and nested text inside visited links so the highlight stays cohesive.
+
+
+SYNC & STORAGE
+--------------
+• Global toggles and colors use Chrome sync storage when you’re signed in, so they can follow your profile across devices.
+• Per-site choices are stored per hostname so exceptions travel with your setup.
+
+
+PRIVACY & PERMISSIONS
+---------------------
+• History permission: used only when you enable history-based matching, to compare links with URLs you’ve visited.
+• Broad site access: needed to apply highlight styling on the pages you browse.
+• Storage: saves your settings and per-site overrides.
+• VisitMark is scoped to visited-link appearance—read Chrome’s permission screen before installing, and use the pop-up toggles to match your comfort level.
+
+
+TIPS
+----
+• Start with one default color that works on light and dark sites; add per-site colors only where needed.
+• If a domain feels wrong, try switching detection modes before changing everything else.
+• Prefer browser visited state first; add history matching only if a site still misbehaves.
+• After a site redesign, tweak the per-site color or disable styling there for a quick fix.
+
+
+WHERE IT HELPS
+--------------
+• Shopping — see which product pages you already opened.
+• Research & docs — avoid reopening the same reference links on long guides.
+• News & forums — track threads and articles you already visited.
+• Search results — cut duplicate opens on dense result pages.
+• Courses — quiet progress cues across multi-day study.
+• Travel & booking — fewer redundant clicks on similar result cards.
+• Support & internal wikis — move past links you already tried.
+• Split-screen and small windows — color stands out when layout is tight.
+
+
+ACCESSIBILITY & COMFORT
+-----------------------
+Stronger visited-link contrast helps many people scan faster. VisitMark is not a medical or assistive substitute, but calmer or higher-contrast colors can make long sessions easier. Per-site controls help when one site feels too harsh.
+
+
+RELIABILITY & LIMITS
+--------------------
+No extension reads every page perfectly. Dynamic URLs, redirects, and heavy scripts can make visited state and history disagree with what you remember. VisitMark gives you detection modes, link categories, and per-site rules so you can tune behavior instead of a single fixed rule.
+
+
+SHARING A COMPUTER
+------------------
+Everyone on the same Chrome profile shares the same extension settings. Use separate Chrome profiles for separate people; VisitMark’s synced options stay with each profile.
+
+
+FAQ
+---
+Q: Does it change where links go?
+A: No—only how visited links look.
+
+Q: Will it slow Chrome down?
+A: It stays lightweight and focused on styling.
+
+Q: Can I turn it off fast?
+A: Yes—globally in the pop-up or per site.
+
+Q: Does it work on every site?
+A: Most do; odd layouts may need category or detection tweaks.
+
+Q: Can I use different colors per site?
+A: Yes—enable site-specific color for the current site.
+
+Q: What if I don’t want history used?
+A: Turn off browsing-history matching and rely on browser visited state.
+
+
+LAST WORD
+---------
+VisitMark keeps a narrow focus: visited-link colors, sensible detection, per-site overrides, and synced settings when you use Chrome while signed in—without piling on unrelated tools.
+
+================================================================================
+END OF FILE
+================================================================================

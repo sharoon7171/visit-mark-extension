@@ -102,7 +102,7 @@ const BANNER_H = 800;
 const POPUP_W = 600;
 
 if (!existsSync(path.join(distDir, "manifest.json"))) {
-  console.error("Missing dist/. Run: npm run build");
+  console.error("Missing dist/. Run: yarn build");
   process.exit(1);
 }
 

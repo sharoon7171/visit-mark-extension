@@ -11,36 +11,31 @@ import {
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-const root = path.dirname(fileURLToPath(import.meta.url));
-const projectRoot = path.join(root, "..");
+const projectRoot = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
 const buildDir = path.join(projectRoot, "build");
 const distDir = path.join(projectRoot, "dist");
 
-const pkg = JSON.parse(
-  readFileSync(path.join(projectRoot, "package.json"), "utf8"),
-);
 const manifest = JSON.parse(
   readFileSync(path.join(projectRoot, "manifest.json"), "utf8"),
 );
-const slug = pkg.name ?? "extension";
-const version = manifest.version;
-const zipName = `${slug}-${version}.zip`;
-const zipPath = path.join(buildDir, zipName);
 
-execFileSync("npm", ["run", "build"], { cwd: projectRoot, stdio: "inherit" });
+const version = manifest.version;
+const zipPath = path.join(buildDir, `${version}.zip`);
+
+execFileSync("yarn", ["build"], { cwd: projectRoot, stdio: "inherit" });
+
+if (!existsSync(path.join(distDir, "manifest.json"))) {
+  process.stderr.write(`Missing dist output: ${distDir}\n`);
+  process.exit(1);
+}
 
 mkdirSync(buildDir, { recursive: true });
-if (existsSync(buildDir)) {
-  for (const name of readdirSync(buildDir)) {
-    if (name.endsWith(".zip")) {
-      unlinkSync(path.join(buildDir, name));
-    }
+for (const entry of readdirSync(buildDir)) {
+  if (entry.endsWith(".zip")) {
+    unlinkSync(path.join(buildDir, entry));
   }
 }
 
-execFileSync("zip", ["-r", zipPath, "."], {
-  cwd: distDir,
-  stdio: "inherit",
-});
+execFileSync("zip", ["-r", zipPath, "."], { cwd: distDir, stdio: "inherit" });
 
 console.log(zipPath);

@@ -2,11 +2,11 @@
   "name": "visited-links-extension",
   "private": true,
   "version": "1.0.9",
+  "packageManager": "yarn@1.22.22",
   "type": "module",
   "scripts": {
     "dev": "vite build --watch",
-    "build": "tsc --noEmit && vite build",
-    "screenshot": "npm run build && npx playwright install chromium && node scripts/screenshot-popup-banner.mjs"
+    "build": "tsc --noEmit && vite build"
   },
   "dependencies": {
     "@fontsource/poppins": "^5.2.7",
@@ -23,7 +23,7 @@
     "@vitejs/plugin-react": "^6.0.1",
     "playwright": "^1.58.2",
     "tailwindcss": "^4.2.2",
-    "typescript": "~6.0.2",
+    "typescript": "^6.0.2",
     "vite": "^8.0.3"
   }
 }

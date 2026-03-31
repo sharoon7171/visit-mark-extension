@@ -95,26 +95,6 @@ function stripLegacyFollowGlobalEntries(raw: Record<string, unknown>): {
 export async function loadPerHostSiteSettingsMap(): Promise<
   Record<string, HostSiteSettings>
 > {
-  return loadMap();
-}
-
-export async function persistHostSiteSettings(
-  hostname: string,
-  settings: HostSiteSettings,
-): Promise<void> {
-  if (!hostname) {
-    return;
-  }
-  const map = await loadMap();
-  map[hostname] = {
-    customHighlightEnabled: settings.customHighlightEnabled,
-    highlightColor: settings.highlightColor,
-    siteColorsEnabled: settings.siteColorsEnabled,
-  };
-  await chrome.storage.sync.set({ [STORAGE_KEY]: map });
-}
-
-async function loadMap(): Promise<Record<string, HostSiteSettings>> {
   const syncBag = await chrome.storage.sync.get(STORAGE_KEY);
   const rawRoot = syncBag[STORAGE_KEY];
   if (!rawRoot || typeof rawRoot !== "object") {
@@ -126,6 +106,22 @@ async function loadMap(): Promise<Record<string, HostSiteSettings>> {
     await chrome.storage.sync.set({ [STORAGE_KEY]: next });
   }
   return parseMap(next);
+}
+
+export async function persistHostSiteSettings(
+  hostname: string,
+  settings: HostSiteSettings,
+): Promise<void> {
+  if (!hostname) {
+    return;
+  }
+  const map = await loadPerHostSiteSettingsMap();
+  map[hostname] = {
+    customHighlightEnabled: settings.customHighlightEnabled,
+    highlightColor: settings.highlightColor,
+    siteColorsEnabled: settings.siteColorsEnabled,
+  };
+  await chrome.storage.sync.set({ [STORAGE_KEY]: map });
 }
 
 function hostSiteSettingsEqual(a: HostSiteSettings, b: HostSiteSettings): boolean {
@@ -154,7 +150,7 @@ export async function loadHostSiteSettingsModel(
       persisted: false,
     };
   }
-  const map = await loadMap();
+  const map = await loadPerHostSiteSettingsMap();
   const entry = map[hostname];
   if (entry) {
     return { settings: { ...entry }, persisted: true };
@@ -200,7 +196,7 @@ export async function flushPopupSyncedState(
     input.hostname &&
     !hostSiteSettingsEqual(input.initialHost, input.currentHost)
   ) {
-    const map = await loadMap();
+    const map = await loadPerHostSiteSettingsMap();
     map[input.hostname] = {
       siteColorsEnabled: input.currentHost.siteColorsEnabled,
       customHighlightEnabled: input.currentHost.customHighlightEnabled,
@@ -217,7 +213,7 @@ export async function clearHostSiteSettings(hostname: string): Promise<void> {
   if (!hostname) {
     return;
   }
-  const map = await loadMap();
+  const map = await loadPerHostSiteSettingsMap();
   if (!(hostname in map)) {
     return;
   }

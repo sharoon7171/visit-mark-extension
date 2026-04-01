@@ -16,7 +16,6 @@ import {
 } from "../../ui-classes/color-field";
 
 type ColorSettingProps = {
-  disabled?: boolean;
   hint?: string;
   id: string;
   label: string;
@@ -40,7 +39,6 @@ function toFullHex(raw: string): string {
 }
 
 export function ColorSetting({
-  disabled = false,
   hint,
   id,
   label,
@@ -71,13 +69,7 @@ export function ColorSetting({
           </span>
         </div>
       </div>
-      <div
-        className={
-          disabled
-            ? `${colorPickerEmbed} pointer-events-none opacity-50`
-            : colorPickerEmbed
-        }
-      >
+      <div className={colorPickerEmbed}>
         <HexColorPicker
           id={id}
           color={safe}

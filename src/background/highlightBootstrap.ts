@@ -8,7 +8,7 @@ import {
   type ExtensionSyncedOptions,
 } from "@/extension-options-sync";
 
-export type TabHighlightPlan = {
+type TabHighlightPlan = {
   active: boolean;
   color: string;
   historyHighlight: boolean;

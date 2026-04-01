@@ -23,6 +23,4 @@ export const designShadows = {
   "switch-inset": `inset 0 1px 1px rgb(${ink} / 0.1)`,
 
   "switch-inset-on": `inset 0 1px 2px rgb(37 99 235 / 0.35)`,
-
-  well: `inset 0 1px 2px rgb(${ink} / 0.04)`,
 } as const;

@@ -1,0 +1,42 @@
+name: Suggest an improvement
+description: Share an idea for VisitMark
+title: "[Feature] "
+labels:
+  - enhancement
+body:
+  - type: markdown
+    attributes:
+      value: |
+        We read every suggestion. The more you tell us about how you use VisitMark, the easier it is to weigh your idea.
+  - type: textarea
+    id: idea
+    attributes:
+      label: What would you like VisitMark to do?
+      description: Describe the new behavior, setting, or change you have in mind.
+    validations:
+      required: true
+  - type: textarea
+    id: benefit
+    attributes:
+      label: How would this help you?
+      description: A short example of when or why this would matter in everyday browsing.
+    validations:
+      required: true
+  - type: dropdown
+    id: where
+    attributes:
+      label: Where would this mainly apply?
+      options:
+        - Everywhere I browse
+        - Only on certain websites
+        - In the VisitMark popup or settings only
+        - Not sure
+    validations:
+      required: true
+  - type: textarea
+    id: examples
+    attributes:
+      label: Examples (optional)
+      description: Site names, types of pages, or situations where this would matter.
+    validations:
+      required: false

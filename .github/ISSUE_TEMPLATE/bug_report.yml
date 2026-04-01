@@ -1,0 +1,73 @@
+name: Something isn't working
+description: Tell us what went wrong so we can fix it
+title: "[Bug] "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Answer in your own words. If something looks wrong on a page, a short screen recording or screenshot can help.
+  - type: textarea
+    id: what_wrong
+    attributes:
+      label: What is going wrong?
+      description: Describe the problem in one or two sentences.
+    validations:
+      required: true
+  - type: textarea
+    id: what_you_did
+    attributes:
+      label: What were you doing when it happened?
+      description: Walk us through what you clicked or changed, in order, if you can.
+      placeholder: |
+        Example: I opened VisitMark, turned on …, then went to … and …
+    validations:
+      required: true
+  - type: textarea
+    id: wanted
+    attributes:
+      label: What did you expect to happen?
+    validations:
+      required: true
+  - type: textarea
+    id: happened
+    attributes:
+      label: What happened instead?
+    validations:
+      required: true
+  - type: dropdown
+    id: browser
+    attributes:
+      label: Which browser are you using?
+      options:
+        - Google Chrome
+        - Microsoft Edge
+        - Brave
+        - Another Chromium browser
+        - Other or not sure
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: VisitMark version
+      description: Open your browser’s Extensions page, find VisitMark, and copy the version if you see it. You can leave this blank if you are not sure.
+      placeholder: e.g. 1.0.11 or leave blank
+    validations:
+      required: false
+  - type: input
+    id: device
+    attributes:
+      label: Device
+      description: What you browse on, in plain terms.
+      placeholder: e.g. Windows PC, Mac, Chromebook, Android phone
+    validations:
+      required: true
+  - type: textarea
+    id: extra
+    attributes:
+      label: Anything else that might help?
+      description: For example the name of a website (if the problem only happens there), or other extensions that change how pages look.
+    validations:
+      required: false

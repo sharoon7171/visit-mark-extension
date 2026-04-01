@@ -1,0 +1,1 @@
+VisitMark uses the storage permission to read and write your preferences in Chrome’s synchronized extension storage (default color, global and per-site toggles, and detection options) so the popup and background service worker share one source of truth, and to listen for storage changes so highlighting can refresh across tabs when you change settings.

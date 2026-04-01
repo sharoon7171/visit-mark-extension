@@ -2,41 +2,78 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<title>VisitMark - Highlight visited links with custom colors — Privacy Policy</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy Policy — VisitMark</title>
 </head>
 <body>
-<h1>VisitMark - Highlight visited links with custom colors — Privacy Policy</h1>
-<p>Last updated: March 31, 2026</p>
-<p>In this policy, “we” and “us” mean the extension’s publisher, and “the extension” means this product. The extension changes how visited links look on pages you open. It runs on your device and uses Chrome’s extension APIs. This document explains what information is involved and what we do with it.</p>
+<header>
+<h1>Privacy Policy</h1>
+<p><strong>VisitMark</strong> — Highlight visited links with custom colors</p>
+<p>Last updated: April 1, 2026</p>
+</header>
 
-<h2>Information the extension processes</h2>
-<p>The extension may process the following categories of information, depending on your settings and the pages you visit.</p>
+<main>
+<section aria-labelledby="h-intro">
+<h2 id="h-intro">Introduction</h2>
+<p>This policy describes how the VisitMark browser extension (“the extension”) handles information. “We,” “us,” and “our” refer to the extension publisher. The extension runs only in your browser using Chrome extension APIs. It customizes how visited links appear on websites you open. It does not send your browsing data to servers we operate.</p>
+</section>
+
+<section aria-labelledby="h-scope">
+<h2 id="h-scope">Scope</h2>
+<p>This policy applies to the VisitMark extension as distributed for Google Chrome. It reflects how the current version of the extension is built to behave in code. If the extension changes in ways that affect data practices, we will update this page and the “Last updated” date.</p>
+</section>
+
+<section aria-labelledby="h-data">
+<h2 id="h-data">Information the extension processes</h2>
+<p>The extension may process the categories below. Processing is limited to what is needed to apply your settings and update highlights when you navigate.</p>
+
+<h3>Settings you save</h3>
+<p>The extension stores your preferences in Chrome’s synchronized extension storage (<code>chrome.storage.sync</code>), including default highlight color, global on or off state, optional feature toggles (such as history-based highlighting and native visited styling), and per-website overrides (hostname, whether site-specific colors apply, and the color for that site when enabled).</p>
+
+<h3>Tab and navigation signals</h3>
+<p>To know when to refresh highlighting, the extension uses APIs that expose tab identifiers, page URLs, when a tab finishes loading, when you switch tabs, and main-frame URL changes in single-page applications (for example <code>chrome.webNavigation</code> history state updates). These signals are used only to decide when to run the extension’s own logic on the affected tab.</p>
+
+<h3>Link addresses on pages you visit</h3>
+<p>On <code>http</code> and <code>https</code> pages, injected scripts collect the resolved <code>href</code> values of <code>a[href]</code> elements so the extension can determine which links to style. This happens in the page context your browser already loaded; those values are not transmitted to us.</p>
+
+<h3>Optional use of browsing history (Chrome History API)</h3>
+<p>If you turn on history-based visited detection in the extension popup, the extension calls <code>chrome.history.getVisits</code> for candidate URLs derived from links on the page to see whether Chrome’s history contains matching visits. It also listens for history add and remove events so highlights can update. If you leave this option off, the extension does not perform these history lookups for that purpose.</p>
+</section>
+
+<section aria-labelledby="h-use">
+<h2 id="h-use">How we use this information</h2>
+<p>We use the information above solely to provide the extension’s features: applying and updating visited-link appearance according to your settings. We do not use it for advertising, sale of personal data, or to build profiles about you for unrelated purposes. The extension does not include analytics or remote logging to our systems.</p>
+</section>
+
+<section aria-labelledby="h-retention">
+<h2 id="h-retention">Storage and retention</h2>
+<p>Your saved settings remain in Chrome (and, if you use Chrome sync while signed in, may sync according to your Google account and Chrome settings) until you change them, remove the extension, or clear extension data through Chrome. History queries performed by the extension are used to compute highlighting on the device and are not stored by us.</p>
+</section>
+
+<section aria-labelledby="h-sharing">
+<h2 id="h-sharing">Sharing and third parties</h2>
+<p>We do not receive your full browsing history, page HTML, or lists of links from websites. We do not sell personal information.</p>
+<p>Google provides Chrome, the extension platform, synchronized extension storage when sync is enabled, and the History API. How Google processes data in Chrome is governed by Google’s policies and your Chrome and Google account settings, not by this document.</p>
+</section>
+
+<section aria-labelledby="h-choices">
+<h2 id="h-choices">Your choices</h2>
 <ul>
-<li><strong>Your preferences</strong> stored in Chrome sync storage (<code>chrome.storage.sync</code>), including highlight colors, global on/off state, per-website overrides, and related toggles.</li>
-<li><strong>Tab and navigation context</strong> that Chrome exposes to extensions, such as the URL of the active tab and when a page finishes loading or its main address changes, so the extension knows when to update highlighting.</li>
-<li><strong>Link addresses on web pages</strong> on <code>http</code> and <code>https</code> sites: the extension reads <code>a[href]</code> values from the page in order to match visited styling and, when you enable it, to compare against history.</li>
-<li><strong>Browsing history signals (optional)</strong> if you enable history-based visited detection: the extension uses Chrome’s History API (<code>chrome.history.getVisits</code>) to see whether URLs corresponding to links on the page appear in your browsing history. It also responds to history change events so highlights can refresh.</li>
-</ul>
-
-<h2>How we use that information</h2>
-<p>We use the information above only to operate the extension: applying and updating visited-link colors and the options you control in the extension popup. We do not use it for advertising, sale of data, or building profiles about you for unrelated purposes.</p>
-
-<h2>Where information is stored and who receives it</h2>
-<p>The extension does not send your browsing history, page content, or lists of links from websites to us or to servers we operate for VisitMark.</p>
-<p>Processing happens in your browser through Chrome. If you use Chrome while signed in and sync is enabled, Google may synchronize extension sync storage according to your Chrome and Google account settings. Chrome’s History API and sync are provided by Google; how Google handles data from Chrome is described in Google’s own policies, not in this document.</p>
-
-<h2>Your choices</h2>
-<ul>
-<li>Turn off history-based detection in the extension popup if you do not want the extension to consult the History API.</li>
-<li>Turn off highlighting globally or for specific sites using the popup.</li>
+<li>Disable history-based detection in the extension popup if you do not want the extension to query the History API.</li>
+<li>Turn highlighting off globally or adjust per-site options in the popup.</li>
 <li>Remove the extension or clear browsing and extension data using Chrome’s settings.</li>
 </ul>
+</section>
 
-<h2>Changes to this policy</h2>
-<p>We may update this policy when the extension changes. The version on the page where this policy is published, together with the “Last updated” date at the top, is the one that applies.</p>
+<section aria-labelledby="h-changes">
+<h2 id="h-changes">Changes to this policy</h2>
+<p>We may update this policy when the extension or applicable requirements change. The version published at this URL, together with the “Last updated” date above, is the one in effect.</p>
+</section>
 
-<h2>Contact</h2>
+<section aria-labelledby="h-contact">
+<h2 id="h-contact">Contact</h2>
 <p>Questions about this policy or the extension: <a href="mailto:sharoon7171@gmail.com">sharoon7171@gmail.com</a> or <a href="https://www.sqtech.dev/">SQ Tech</a>.</p>
+</section>
+</main>
 </body>
 </html>

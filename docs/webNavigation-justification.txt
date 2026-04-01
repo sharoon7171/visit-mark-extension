@@ -1,0 +1,1 @@
+VisitMark uses the webNavigation permission to listen for main-frame history state updates (for example in single-page apps that change the address without a full page load) so visited-link highlighting can be recomputed when the visible URL changes, matching the same refresh behavior you get after a normal navigation.

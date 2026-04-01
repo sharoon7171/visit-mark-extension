@@ -38,21 +38,16 @@ export function planHighlightForPageUrl(
     return null;
   }
   const host = hostMap[hostname] ?? defaultHostSiteSettings;
-  const highlightAllowed = synced.masterEnabled && host.siteColorsEnabled;
+  const active = synced.masterEnabled && host.siteColorsEnabled;
   let color = synced.defaultHighlightColor;
-  if (
-    highlightAllowed &&
-    host.customHighlightEnabled &&
-    host.highlightColor
-  ) {
+  if (active && host.customHighlightEnabled && host.highlightColor) {
     color = host.highlightColor;
   }
   return {
-    active: highlightAllowed,
+    active,
     color,
-    historyHighlight:
-      highlightAllowed && synced.highlightHistoryLinksEnabled,
-    visitedCss: highlightAllowed && synced.highlightVisitedCssEnabled,
+    historyHighlight: active && synced.highlightHistoryLinksEnabled,
+    visitedCss: active && synced.highlightVisitedCssEnabled,
   };
 }
 

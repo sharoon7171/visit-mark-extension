@@ -1,17 +1,16 @@
 import type { ExtensionSyncedOptions } from "@/extension-options-sync";
 import type { HostSiteSettings } from "@/extension-host-settings";
-import {
-  isInjectablePageUrl,
-  planHighlightForPageUrl,
-  type TabHighlightPlan,
-} from "./highlightBootstrap";
+import { isInjectablePageUrl, planHighlightForPageUrl } from "./highlightBootstrap";
 import { listNormalizedUrlsWithHistoryVisits } from "./historyVisitsLookup";
 import {
   visitmarkApplyHistoryHighlights,
   visitmarkCleanupHistoryHighlights,
   visitmarkCollectAnchorHrefs,
 } from "./pageScripts";
-import { buildVisitedLinkCss } from "./visitedLinkCss";
+import {
+  buildVisitedLinkCss,
+  NEUTRALIZE_VISITED_LINK_CSS,
+} from "./visitedLinkCss";
 
 const injectedVisitedCssByTab = new Map<number, string>();
 
@@ -30,8 +29,7 @@ async function removeVisitedCss(tabId: number): Promise<void> {
   injectedVisitedCssByTab.delete(tabId);
 }
 
-async function applyVisitedCss(tabId: number, plan: TabHighlightPlan): Promise<void> {
-  const css = buildVisitedLinkCss(plan.color);
+async function applyInsetCss(tabId: number, css: string): Promise<void> {
   const prev = injectedVisitedCssByTab.get(tabId);
   if (prev === css) {
     return;
@@ -47,6 +45,15 @@ async function applyVisitedCss(tabId: number, plan: TabHighlightPlan): Promise<v
   } catch {}
 }
 
+async function cleanupHistoryHighlights(tabId: number): Promise<void> {
+  try {
+    await chrome.scripting.executeScript({
+      func: visitmarkCleanupHistoryHighlights,
+      target: { tabId },
+    });
+  } catch {}
+}
+
 export async function applyHighlightToTab(
   tabId: number,
   tab: chrome.tabs.Tab,
@@ -56,27 +63,19 @@ export async function applyHighlightToTab(
   const url = tab.url;
   if (!url || !isInjectablePageUrl(url)) {
     await removeVisitedCss(tabId);
-    try {
-      await chrome.scripting.executeScript({
-        func: visitmarkCleanupHistoryHighlights,
-        target: { tabId },
-      });
-    } catch {}
+    await cleanupHistoryHighlights(tabId);
     return;
   }
   const plan = planHighlightForPageUrl(url, synced, hostMap);
-  if (!plan || !plan.active) {
+  if (!plan) {
     await removeVisitedCss(tabId);
-    try {
-      await chrome.scripting.executeScript({
-        func: visitmarkCleanupHistoryHighlights,
-        target: { tabId },
-      });
-    } catch {}
+    await cleanupHistoryHighlights(tabId);
     return;
   }
-  if (plan.visitedCss) {
-    await applyVisitedCss(tabId, plan);
+  if (!plan.active) {
+    await applyInsetCss(tabId, NEUTRALIZE_VISITED_LINK_CSS);
+  } else if (plan.visitedCss) {
+    await applyInsetCss(tabId, buildVisitedLinkCss(plan.color));
   } else {
     await removeVisitedCss(tabId);
   }
@@ -93,12 +92,7 @@ export async function applyHighlightToTab(
     }
     const matches = await listNormalizedUrlsWithHistoryVisits(hrefs);
     if (matches.length === 0) {
-      try {
-        await chrome.scripting.executeScript({
-          func: visitmarkCleanupHistoryHighlights,
-          target: { tabId },
-        });
-      } catch {}
+      await cleanupHistoryHighlights(tabId);
     } else {
       try {
         await chrome.scripting.executeScript({
@@ -109,11 +103,6 @@ export async function applyHighlightToTab(
       } catch {}
     }
   } else {
-    try {
-      await chrome.scripting.executeScript({
-        func: visitmarkCleanupHistoryHighlights,
-        target: { tabId },
-      });
-    } catch {}
+    await cleanupHistoryHighlights(tabId);
   }
 }

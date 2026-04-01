@@ -328,7 +328,7 @@ export function App({
     })();
   };
 
-  const siteMeta = initialHostname ? initialHostname : "No active page";
+  const siteMeta = initialHostname ? initialHostname : "No website open";
 
   const siteDisabled = !initialHostname;
   const siteControlsDisabled = siteDisabled || !masterEnabled;
@@ -351,24 +351,24 @@ export function App({
       <div className={popupStack}>
         <section className={settingsCardGlobal}>
           <div className={settingsCardHead}>
-            <h2 className={settingsCardTitle}>All sites</h2>
-            <p className={settingsCardScopeBadge}>Default options</p>
+            <h2 className={settingsCardTitle}>Global</h2>
+            <p className={settingsCardScopeBadge}>Default settings</p>
           </div>
           <div className={settingsCardBody}>
             <SettingToggle
               id="global-enabled"
-              label="Visited link colors"
-              description="Enable to highlight visited links with your colors. Disable to use the browser default on every site."
+              label="Visited link highlighting"
+              description="On: your colors and rules apply everywhere. Off: only the browser's default visited styling."
               checked={masterEnabled}
               onChange={setMasterEnabledPersist}
             />
             <p className={settingsCardSubhead} id="detection-heading">
-              Detection
+              What counts as visited
             </p>
             <SettingToggle
               id="global-visited-css"
-              label="Browser visited state"
-              description="Enable to respect links the browser already marks as visited."
+              label="Browser-marked links"
+              description="Treat links the browser already shows as visited."
               checked={highlightVisitedCssEnabled}
               onChange={setHighlightVisitedCssPersist}
               disabled={!masterEnabled}
@@ -376,15 +376,15 @@ export function App({
             <SettingToggle
               id="global-history-urls"
               label="Browsing history"
-              description="Enable to treat URLs in your history as visited, including when history is synced."
+              description="Also treat URLs that appear in your history (including synced history)."
               checked={highlightHistoryLinksEnabled}
               onChange={setHighlightHistoryLinksPersist}
               disabled={!masterEnabled}
             />
             <ColorSetting
               id="global-color"
-              label="Default color"
-              hint="Used everywhere unless a site sets its own."
+              label="Default highlight color"
+              hint="Used on every site unless you set a site override."
               value={defaultHighlightColor}
               onChange={setDefaultHighlightColorPersist}
             />
@@ -393,7 +393,7 @@ export function App({
                 <div className={settingsResetCopy}>
                   <p className={toggleLabel}>Restore defaults</p>
                   <p className={toggleDescription}>
-                    Reset global colors and detection to their default values.
+                    Reset all global settings to their original values.
                   </p>
                 </div>
                 <button
@@ -409,7 +409,7 @@ export function App({
         </section>
         <section className={settingsCardSite}>
           <div className={settingsCardHead}>
-            <h2 className={settingsCardTitle}>This site</h2>
+            <h2 className={settingsCardTitle}>Current site</h2>
             <p
               className={
                 siteDisabled
@@ -423,16 +423,16 @@ export function App({
           <div className={settingsCardBody}>
             <SettingToggle
               id="site-enabled"
-              label="This site"
-              description="Turn on to style visited links here. Turn off so this extension does not change link colors on this site."
+              label="Apply styling on this site"
+              description="On: use your global rules and colors here. Off: no extension styling on this site."
               checked={hostSettings.siteColorsEnabled}
               onChange={setSiteColorsEnabledPersist}
               disabled={siteControlsDisabled}
             />
             <SettingToggle
               id="site-custom-color"
-              label="Site-specific color"
-              description="Enable to choose a highlight color that applies only to this site."
+              label="Site-only highlight color"
+              description="Use a color on this site that overrides the global default."
               checked={hostSettings.customHighlightEnabled}
               onChange={setCustomHighlightEnabledPersist}
               disabled={siteCustomColorToggleDisabled}
@@ -442,8 +442,8 @@ export function App({
             !siteControlsDisabled ? (
               <ColorSetting
                 id="site-color"
-                label="Color for this site"
-                hint="Overrides the default color on this site only."
+                label="Site highlight color"
+                hint="Applies on this site only."
                 value={hostSettings.highlightColor ?? defaultHighlightColor}
                 onChange={setSiteHighlightColorPersist}
               />
@@ -451,9 +451,9 @@ export function App({
             {showSiteRemove ? (
               <div className={settingsResetRow}>
                 <div className={settingsResetCopy}>
-                  <p className={toggleLabel}>Remove site settings</p>
+                  <p className={toggleLabel}>Clear site overrides</p>
                   <p className={toggleDescription}>
-                    Deletes saved options for this site so defaults apply again.
+                    Remove saved settings for this site. Global defaults apply.
                   </p>
                 </div>
                 <button
@@ -462,7 +462,7 @@ export function App({
                   onClick={resetThisSiteOnly}
                   disabled={siteControlsDisabled}
                 >
-                  Remove
+                  Clear
                 </button>
               </div>
             ) : null}

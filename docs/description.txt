@@ -1,0 +1,48 @@
+VisitMark
+─────────
+
+VisitMark highlights links you have already visited using colors you control. Set a default style for all sites, then override individual sites when you need a different color or want styling turned off for that page only. If you use Chrome with sync, your choices stay available across signed-in devices.
+
+The extension can treat a link as visited when Chrome’s native visited state applies, and optionally when the URL appears in your browsing history (including synced history). Highlights update as you move between pages, including sites that change the URL without a full reload.
+
+────────────────────────────────────────────────────────────
+
+Key features
+────────────
+
+• Custom colors for visited links on standard HTTP and HTTPS pages.
+
+• Global defaults plus per-site options: enable or disable highlighting for the current site, and optionally assign a color used only on that site.
+
+• Two detection modes, usable together or separately: browser visited state, and history-based matching for cases where visited styling alone is not enough.
+
+• A single global switch to restore the browser’s default visited appearance everywhere when you do not want VisitMark active.
+
+────────────────────────────────────────────────────────────
+
+Getting started
+───────────────
+
+1. Open the VisitMark popup from the Chrome toolbar.
+
+2. Under All sites, enable Visited link colors and pick a default highlight color.
+
+3. Under Detection, turn on Browser visited state and/or Browsing history according to how you want links qualified as visited.
+
+4. On a site you use often, open the popup again. Under This site, choose whether highlighting applies there; use Site-specific color if you want a color that applies only to that host.
+
+5. Use Restore defaults for global settings, or Remove site settings to clear saved options for the site you have open.
+
+────────────────────────────────────────────────────────────
+
+Who it helps
+────────────
+
+Anyone who scans long pages of links—search results, documentation, forums, directories—and wants consistent, easy-to-see distinction between visited and unvisited destinations without opening history or relying on faint default styling.
+
+────────────────────────────────────────────────────────────
+
+Privacy
+───────
+
+VisitMark applies your saved preferences locally in the browser. It uses extension APIs to read settings, observe navigation, and when you enable history-based detection, to read history as needed for that feature. It does not send your browsing data to publisher-operated servers for highlighting. See the linked privacy policy for full detail.

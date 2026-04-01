@@ -66,7 +66,7 @@ export function ColorSetting({
             style={{ backgroundColor: safe }}
             aria-hidden
           />
-          <span className={colorHex} aria-hidden>
+          <span className={colorHex} title={displayHex} aria-hidden>
             {displayHex}
           </span>
         </div>

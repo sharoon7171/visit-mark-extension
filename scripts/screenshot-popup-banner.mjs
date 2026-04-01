@@ -69,28 +69,6 @@ async function readDocumentOuterSize(page) {
   });
 }
 
-async function unionClip(locators) {
-  let minX = Infinity;
-  let minY = Infinity;
-  let maxX = -Infinity;
-  let maxY = -Infinity;
-  for (const loc of locators) {
-    const box = await loc.boundingBox();
-    if (!box) {
-      throw new Error("Missing layout box for panel screenshot");
-    }
-    minX = Math.min(minX, box.x);
-    minY = Math.min(minY, box.y);
-    maxX = Math.max(maxX, box.x + box.width);
-    maxY = Math.max(maxY, box.y + box.height);
-  }
-  const x = Math.floor(minX);
-  const y = Math.floor(minY);
-  const width = Math.ceil(maxX) - x;
-  const height = Math.ceil(maxY) - y;
-  return { x, y, width, height };
-}
-
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, "..");
 const distDir = path.resolve(root, "dist");
@@ -99,26 +77,8 @@ const userDataDir = path.join(os.tmpdir(), `visitmark-screenshot-${Date.now()}`)
 
 const BANNER_W = 1280;
 const BANNER_H = 800;
-const POPUP_CAPTURE_W = 720;
-const BANNER_SHELL_PAD_X = 24;
-const BANNER_SPINE_W = 16;
-const BANNER_PANEL_GUTTER = 16;
-const BANNER_STAGE_PAD_TOP = 18;
-const BANNER_STAGE_PAD_BOTTOM = 22;
-const PANEL_ABOVE_FRAME_RESERVE = 64;
-const PANEL_FRAME_MAX_W = Math.floor(
-  (BANNER_W -
-    BANNER_SHELL_PAD_X * 2 -
-    BANNER_SPINE_W -
-    BANNER_PANEL_GUTTER) /
-    2,
-);
-const FRAME_IMG_MAX_H =
-  BANNER_H -
-  3 -
-  BANNER_STAGE_PAD_TOP -
-  BANNER_STAGE_PAD_BOTTOM -
-  PANEL_ABOVE_FRAME_RESERVE;
+const POPUP_CAPTURE_W = 800;
+const BANNER_INSET = 56;
 
 if (!existsSync(path.join(distDir, "manifest.json"))) {
   console.error("Missing dist/. Run: yarn build");
@@ -129,17 +89,13 @@ mkdirSync(docsDir, { recursive: true });
 
 const bannerPath = path.join(docsDir, "banner-1280x800.png");
 const tmpStamp = `${Date.now()}-${process.pid}`;
-const panelGlobalPath = path.join(
+const popupUiPath = path.join(
   os.tmpdir(),
-  `visitmark-panel-global-${tmpStamp}.png`,
-);
-const panelSitePath = path.join(
-  os.tmpdir(),
-  `visitmark-panel-site-${tmpStamp}.png`,
+  `visitmark-popup-ui-${tmpStamp}.png`,
 );
 const composeHtmlPath = path.join(
   os.tmpdir(),
-  `visitmark-banner-dual-${tmpStamp}.html`,
+  `visitmark-banner-compose-${tmpStamp}.html`,
 );
 
 const context = await chromium.launchPersistentContext(userDataDir, {
@@ -178,164 +134,40 @@ try {
   await page.evaluate(() => document.fonts.ready);
 
   const shell = page.locator("#root > div").first();
-  const header = shell.locator(":scope > header");
-  const stack = shell.locator(":scope > *").nth(1);
-  const footer = shell.locator(":scope > footer");
-  const section0 = stack.locator(":scope > section").nth(0);
-  const section1 = stack.locator(":scope > section").nth(1);
-
-  const clipGlobal = await unionClip([header, section0]);
-  const clipSite = await unionClip([section1, footer]);
 
   try {
-    await page.screenshot({
-      path: panelGlobalPath,
-      type: "png",
-      clip: clipGlobal,
-    });
-    await page.screenshot({
-      path: panelSitePath,
-      type: "png",
-      clip: clipSite,
-    });
+    await shell.screenshot({ path: popupUiPath, type: "png" });
 
-    const imgA = pathToFileURL(panelGlobalPath).href;
-    const imgB = pathToFileURL(panelSitePath).href;
+    const imgUi = pathToFileURL(popupUiPath).href;
     const composeHtml = `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body {
+html, body {
   width: ${BANNER_W}px;
   height: ${BANNER_H}px;
-  position: relative;
   overflow: hidden;
-  font-family: Poppins;
-  background: #fafafa;
 }
-.shell {
-  position: relative;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  padding: 0 ${BANNER_SHELL_PAD_X}px;
-}
-.bg-bar {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: #3b82f6;
-  z-index: 0;
-}
-.stage {
-  position: relative;
-  z-index: 1;
-  flex: 1;
-  min-height: 0;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: center;
-  gap: 0;
-  padding: ${BANNER_STAGE_PAD_TOP}px 0 ${BANNER_STAGE_PAD_BOTTOM}px;
-}
-.panel {
-  flex: 1 1 0;
-  min-width: 0;
-  max-width: ${PANEL_FRAME_MAX_W}px;
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 8px;
-}
-.panel--a { padding-right: 8px; }
-.panel--b { padding-left: 8px; }
-.panel-head {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  padding: 0 1px 0;
-}
-.panel-step {
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  color: #6b7280;
-}
-.panel-title {
-  font-size: 15px;
-  font-weight: 600;
-  letter-spacing: -0.02em;
-  color: #111827;
-  line-height: 1.25;
-}
-.frame {
-  border-radius: 16px;
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
-  box-shadow: 0 20px 40px -16px rgba(17, 24, 39, 0.12);
-}
-.frame-inner {
-  border-radius: 15px;
-  overflow: hidden;
-  background: #f9fafb;
+body {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 80px;
-  margin: 1px;
+  background: #e4e4e7;
 }
-.frame img {
+body img {
   display: block;
-  width: 100%;
+  max-width: ${BANNER_W - BANNER_INSET * 2}px;
+  max-height: ${BANNER_H - BANNER_INSET * 2}px;
+  width: auto;
   height: auto;
-  max-height: ${FRAME_IMG_MAX_H}px;
   object-fit: contain;
-}
-.spine {
-  width: ${BANNER_SPINE_W}px;
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.spine-rule {
-  width: 1px;
-  height: ${FRAME_IMG_MAX_H}px;
-  background: #d1d5db;
 }
 </style>
 </head>
 <body>
-<div class="shell">
-  <div class="bg-bar" aria-hidden="true"></div>
-  <main class="stage">
-    <article class="panel panel--a">
-      <div class="panel-head">
-        <span class="panel-step">Global</span>
-        <h2 class="panel-title">Defaults for every site</h2>
-      </div>
-      <div class="frame">
-        <div class="frame-inner"><img src="${imgA}" alt=""/></div>
-      </div>
-    </article>
-    <div class="spine"><div class="spine-rule"></div></div>
-    <article class="panel panel--b">
-      <div class="panel-head">
-        <span class="panel-step">Context</span>
-        <h2 class="panel-title">This site</h2>
-      </div>
-      <div class="frame">
-        <div class="frame-inner"><img src="${imgB}" alt=""/></div>
-      </div>
-    </article>
-  </main>
-</div>
+<img src="${imgUi}" alt=""/>
 </body>
 </html>`;
     writeFileSync(composeHtmlPath, composeHtml, "utf8");
@@ -346,7 +178,6 @@ body {
       await bannerPage.goto(pathToFileURL(composeHtmlPath).href, {
         waitUntil: "load",
       });
-      await bannerPage.evaluate(() => document.fonts.ready);
       await bannerPage.screenshot({
         path: bannerPath,
         type: "png",
@@ -356,7 +187,7 @@ body {
       await bannerPage.close();
     }
   } finally {
-    for (const p of [composeHtmlPath, panelGlobalPath, panelSitePath]) {
+    for (const p of [composeHtmlPath, popupUiPath]) {
       if (existsSync(p)) {
         unlinkSync(p);
       }

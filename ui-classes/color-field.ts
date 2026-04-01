@@ -1,20 +1,20 @@
 export const colorFieldRoot =
-  "flex w-full min-w-0 flex-col gap-2 rounded-lg border border-card-row-border bg-card-row-bg px-3 py-2 shadow-sm font-sans sm:gap-2 sm:px-3.5 sm:py-2";
+  "flex w-full min-w-0 flex-col gap-2 rounded-lg border border-card-row-border bg-card-row-bg px-3 py-2 shadow-sm font-sans sm:px-3.5";
 
 export const colorFieldTopRow =
   "flex items-start justify-between gap-2 sm:items-center sm:gap-3";
 
 export const colorHex =
-  "inline-flex h-8 w-28 shrink-0 items-center justify-center rounded-md border border-border bg-surface-muted px-2 font-sans text-xs font-bold tabular-nums leading-none tracking-wide text-foreground sm:w-32 sm:text-sm";
+  "inline-flex h-8 w-28 shrink-0 items-center justify-center rounded-md border border-border bg-surface-muted px-2 font-sans text-caption font-semibold tabular-nums leading-none tracking-wide text-foreground sm:w-32";
 
 export const colorHexSwatchRow =
   "flex w-35 shrink-0 flex-none items-center gap-1.5";
 
 export const colorHint =
-  "mt-0.5 text-sm font-medium leading-snug text-foreground-muted sm:text-base";
+  "mt-1 text-field-body font-normal text-foreground-muted";
 
 export const colorLabel =
-  "block text-base font-semibold leading-snug text-foreground sm:text-lg";
+  "block text-field-label font-semibold text-foreground";
 
 export const colorLabelBlock = "min-w-0 flex-1 pr-1";
 

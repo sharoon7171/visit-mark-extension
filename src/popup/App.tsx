@@ -217,7 +217,6 @@ export function App({
   const setDefaultHighlightColorPersist = (value: string) => {
     setDefaultHighlightColor(value);
     defaultColorRef.current = value;
-    pushSyncedToStorage();
   };
 
   const setHighlightVisitedCssPersist = (checked: boolean) => {
@@ -279,9 +278,6 @@ export function App({
     setHostSettings((prev) => {
       const next = { ...prev, highlightColor: value };
       hostSettingsRef.current = next;
-      void persistHostSiteSettings(initialHostname, next).then(() => {
-        requestVisitmarkHighlightRefresh();
-      });
       return next;
     });
   };

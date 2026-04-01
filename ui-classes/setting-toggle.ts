@@ -1,11 +1,11 @@
 export const toggleDescription =
-  "mt-0.5 text-sm font-medium leading-snug text-foreground-muted sm:text-base";
+  "mt-1 text-field-body font-normal text-foreground-muted";
 
 export const toggleInput =
   "peer absolute inset-0 z-10 h-full w-full cursor-pointer opacity-0 disabled:cursor-not-allowed";
 
 export const toggleLabel =
-  "block text-base font-semibold leading-snug text-foreground sm:text-lg";
+  "block text-field-label font-semibold text-foreground";
 
 export const toggleRow =
   "flex items-start justify-between gap-2 rounded-lg border border-card-row-border bg-card-row-bg px-3 py-2 shadow-sm sm:gap-3 sm:px-3.5";

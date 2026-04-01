@@ -171,23 +171,13 @@ export async function flushPopupSyncedState(
   > = {};
   const cg = input.currentGlobal;
   const ig = input.initialGlobal;
-  if (
-    cg.masterEnabled !== ig.masterEnabled ||
-    cg.defaultHighlightColor !== ig.defaultHighlightColor ||
-    cg.highlightHistoryLinksEnabled !== ig.highlightHistoryLinksEnabled ||
-    cg.highlightVisitedCssEnabled !== ig.highlightVisitedCssEnabled
-  ) {
-    payload[EXTENSION_SYNC_OPTION_KEYS.masterEnabled] = cg.masterEnabled;
+  if (cg.defaultHighlightColor !== ig.defaultHighlightColor) {
     payload[EXTENSION_SYNC_OPTION_KEYS.defaultHighlightColor] =
       cg.defaultHighlightColor;
-    payload[EXTENSION_SYNC_OPTION_KEYS.highlightHistoryLinksEnabled] =
-      cg.highlightHistoryLinksEnabled;
-    payload[EXTENSION_SYNC_OPTION_KEYS.highlightVisitedCssEnabled] =
-      cg.highlightVisitedCssEnabled;
   }
   if (
     input.hostname &&
-    !hostSiteSettingsEqual(input.initialHost, input.currentHost)
+    input.currentHost.highlightColor !== input.initialHost.highlightColor
   ) {
     const map = await loadPerHostSiteSettingsMap();
     map[input.hostname] = {

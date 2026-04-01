@@ -1,5 +1,5 @@
 @import "tailwindcss";
 @config "../tailwind.config.ts";
 
-@source "../popup.html";
+@source "../public/popup.html";
 @source "../ui-classes/**/*.ts";

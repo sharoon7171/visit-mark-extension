@@ -7,13 +7,11 @@ import {
   loadExtensionSyncedOptions,
   type ExtensionSyncedOptions,
 } from "@/extension-options-sync";
-import type { VisitTargetToggles } from "@/visited-link-targets";
 
 export type TabHighlightPlan = {
   active: boolean;
   color: string;
   historyHighlight: boolean;
-  visitTargetToggles: VisitTargetToggles;
   visitedCss: boolean;
 };
 
@@ -55,7 +53,6 @@ export function planHighlightForPageUrl(
     historyHighlight:
       highlightAllowed && synced.highlightHistoryLinksEnabled,
     visitedCss: highlightAllowed && synced.highlightVisitedCssEnabled,
-    visitTargetToggles: synced.visitTargetToggles,
   };
 }
 

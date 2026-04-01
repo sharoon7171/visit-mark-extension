@@ -2,10 +2,6 @@ import {
   EXTENSION_SYNC_OPTION_KEYS,
   type ExtensionSyncedOptions,
 } from "@/extension-options-sync";
-import {
-  visitTargetTogglesEqual,
-  type VisitTargetToggles,
-} from "@/visited-link-targets";
 import { parseHexColor } from "@/lib/hexColor";
 
 export type HostSiteSettings = {
@@ -171,7 +167,7 @@ export async function flushPopupSyncedState(
 ): Promise<void> {
   const payload: Record<
     string,
-    boolean | string | VisitTargetToggles | Record<string, HostSiteSettings>
+    boolean | string | Record<string, HostSiteSettings>
   > = {};
   const cg = input.currentGlobal;
   const ig = input.initialGlobal;
@@ -179,8 +175,7 @@ export async function flushPopupSyncedState(
     cg.masterEnabled !== ig.masterEnabled ||
     cg.defaultHighlightColor !== ig.defaultHighlightColor ||
     cg.highlightHistoryLinksEnabled !== ig.highlightHistoryLinksEnabled ||
-    cg.highlightVisitedCssEnabled !== ig.highlightVisitedCssEnabled ||
-    !visitTargetTogglesEqual(cg.visitTargetToggles, ig.visitTargetToggles)
+    cg.highlightVisitedCssEnabled !== ig.highlightVisitedCssEnabled
   ) {
     payload[EXTENSION_SYNC_OPTION_KEYS.masterEnabled] = cg.masterEnabled;
     payload[EXTENSION_SYNC_OPTION_KEYS.defaultHighlightColor] =
@@ -189,8 +184,6 @@ export async function flushPopupSyncedState(
       cg.highlightHistoryLinksEnabled;
     payload[EXTENSION_SYNC_OPTION_KEYS.highlightVisitedCssEnabled] =
       cg.highlightVisitedCssEnabled;
-    payload[EXTENSION_SYNC_OPTION_KEYS.visitTargetToggles] =
-      cg.visitTargetToggles;
   }
   if (
     input.hostname &&

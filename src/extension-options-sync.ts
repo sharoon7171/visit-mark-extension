@@ -1,17 +1,10 @@
 import { DEFAULT_VISITED_HEX, parseHexColor } from "@/lib/hexColor";
-import {
-  defaultVisitTargetToggles,
-  parseVisitTargetToggles,
-  visitTargetTogglesEqual,
-  type VisitTargetToggles,
-} from "@/visited-link-targets";
 
 export const EXTENSION_SYNC_OPTION_KEYS = {
   defaultHighlightColor: "vl_defaultHighlightColor",
   highlightHistoryLinksEnabled: "vl_highlightHistoryLinksEnabled",
   highlightVisitedCssEnabled: "vl_highlightVisitedCssEnabled",
   masterEnabled: "vl_masterEnabled",
-  visitTargetToggles: "vl_visitTargetToggles",
 } as const;
 
 export type ExtensionSyncedOptions = {
@@ -19,7 +12,6 @@ export type ExtensionSyncedOptions = {
   highlightHistoryLinksEnabled: boolean;
   highlightVisitedCssEnabled: boolean;
   masterEnabled: boolean;
-  visitTargetToggles: VisitTargetToggles;
 };
 
 const DEFAULTS: ExtensionSyncedOptions = {
@@ -27,7 +19,6 @@ const DEFAULTS: ExtensionSyncedOptions = {
   highlightHistoryLinksEnabled: true,
   highlightVisitedCssEnabled: true,
   masterEnabled: true,
-  visitTargetToggles: defaultVisitTargetToggles(),
 };
 
 const SYNC_KEYS = Object.values(EXTENSION_SYNC_OPTION_KEYS);
@@ -47,9 +38,6 @@ function fromRecord(raw: Record<string, unknown>): ExtensionSyncedOptions {
     highlightVisitedCssEnabled:
       typeof vcss === "boolean" ? vcss : DEFAULTS.highlightVisitedCssEnabled,
     masterEnabled: typeof m === "boolean" ? m : DEFAULTS.masterEnabled,
-    visitTargetToggles: parseVisitTargetToggles(
-      raw[EXTENSION_SYNC_OPTION_KEYS.visitTargetToggles],
-    ),
   };
 }
 
@@ -60,8 +48,7 @@ export function extensionOptionsAreDefaults(
     o.defaultHighlightColor === DEFAULTS.defaultHighlightColor &&
     o.highlightHistoryLinksEnabled === DEFAULTS.highlightHistoryLinksEnabled &&
     o.highlightVisitedCssEnabled === DEFAULTS.highlightVisitedCssEnabled &&
-    o.masterEnabled === DEFAULTS.masterEnabled &&
-    visitTargetTogglesEqual(o.visitTargetToggles, DEFAULTS.visitTargetToggles)
+    o.masterEnabled === DEFAULTS.masterEnabled
   );
 }
 
@@ -79,8 +66,6 @@ export async function resetExtensionSyncedOptionsToDefaults(): Promise<void> {
     [EXTENSION_SYNC_OPTION_KEYS.highlightVisitedCssEnabled]:
       DEFAULTS.highlightVisitedCssEnabled,
     [EXTENSION_SYNC_OPTION_KEYS.masterEnabled]: DEFAULTS.masterEnabled,
-    [EXTENSION_SYNC_OPTION_KEYS.visitTargetToggles]:
-      DEFAULTS.visitTargetToggles,
   });
 }
 
@@ -94,7 +79,6 @@ export async function persistExtensionSyncedOptions(
     [EXTENSION_SYNC_OPTION_KEYS.highlightVisitedCssEnabled]:
       o.highlightVisitedCssEnabled,
     [EXTENSION_SYNC_OPTION_KEYS.masterEnabled]: o.masterEnabled,
-    [EXTENSION_SYNC_OPTION_KEYS.visitTargetToggles]: o.visitTargetToggles,
   });
 }
 

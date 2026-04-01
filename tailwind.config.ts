@@ -12,6 +12,7 @@ export default {
       boxShadow: designShadows,
       colors: designColors,
       fontFamily: {
+        mono: [designFonts.sans],
         sans: [designFonts.sans],
       },
     },

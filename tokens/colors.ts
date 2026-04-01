@@ -6,7 +6,6 @@ export const designColors = {
   brand: {
     DEFAULT: "#3b82f6",
     hover: "#2563eb",
-    muted: "#eff6ff",
   },
   card: {
     border: "#cbd5e1",
@@ -44,7 +43,6 @@ export const designColors = {
     DEFAULT: "#f1f5f9",
     raised: "#ffffff",
     muted: "#f8fafc",
-    inset: "#f1f5f9",
   },
   switch: {
     off: "#e2e8f0",

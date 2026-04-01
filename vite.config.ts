@@ -3,7 +3,9 @@ import {
   cpSync,
   existsSync,
   mkdirSync,
+  readFileSync,
   rmSync,
+  writeFileSync,
 } from "node:fs";
 import path from "node:path";
 
@@ -12,6 +14,14 @@ import react from "@vitejs/plugin-react";
 import { build, defineConfig } from "vite";
 
 const root = path.resolve(import.meta.dirname);
+
+const productionMinify = {
+  cssMinify: "esbuild" as const,
+  esbuild: {
+    legalComments: "none" as const,
+  },
+  minify: "esbuild" as const,
+};
 
 async function bundleServiceWorker(): Promise<void> {
   const tmp = path.join(root, ".tmp-vite-bg");
@@ -29,8 +39,8 @@ async function bundleServiceWorker(): Promise<void> {
         },
       },
       build: {
+        ...productionMinify,
         emptyOutDir: true,
-        minify: false,
         outDir: tmp,
         lib: {
           entry: path.join(root, "src/background/index.ts"),
@@ -69,12 +79,21 @@ export default defineConfig({
         await bundleServiceWorker();
         const dist = path.join(root, "dist");
         copyFileSync(
-          path.join(root, "manifest.json"),
+          path.join(root, "public/manifest.json"),
           path.join(dist, "manifest.json"),
         );
-        const iconsDir = path.join(root, "icons");
+        const iconsDir = path.join(root, "public/icons");
         if (existsSync(iconsDir)) {
           cpSync(iconsDir, path.join(dist, "icons"), { recursive: true });
+        }
+        const nestedPopup = path.join(dist, "public/popup.html");
+        const rootPopup = path.join(dist, "popup.html");
+        if (existsSync(nestedPopup)) {
+          const html = readFileSync(nestedPopup, "utf8")
+            .replaceAll('src="../popup.js"', 'src="./popup.js"')
+            .replaceAll('href="../popup.css"', 'href="./popup.css"');
+          writeFileSync(rootPopup, html);
+          rmSync(path.join(dist, "public"), { recursive: true, force: true });
         }
       },
     },
@@ -86,12 +105,13 @@ export default defineConfig({
   },
   publicDir: false,
   build: {
+    ...productionMinify,
     outDir: "dist",
     emptyOutDir: true,
     cssCodeSplit: false,
     rollupOptions: {
       input: {
-        popup: path.join(root, "popup.html"),
+        popup: path.join(root, "public/popup.html"),
       },
       output: {
         entryFileNames: "popup.js",

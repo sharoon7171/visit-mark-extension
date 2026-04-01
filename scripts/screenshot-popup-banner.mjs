@@ -164,10 +164,9 @@ try {
   const footer = shell.locator(":scope > footer");
   const section0 = stack.locator(":scope > section").nth(0);
   const section1 = stack.locator(":scope > section").nth(1);
-  const section2 = stack.locator(":scope > section").nth(2);
 
   const clipGlobal = await unionClip([header, section0]);
-  const clipSite = await unionClip([section1, section2, footer]);
+  const clipSite = await unionClip([section1, footer]);
 
   try {
     await page.screenshot({
@@ -194,7 +193,7 @@ body {
   height: ${BANNER_H}px;
   position: relative;
   overflow: hidden;
-  font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
+  font-family: Poppins;
   background: #fafafa;
 }
 .shell {
@@ -310,7 +309,7 @@ body {
     <article class="panel panel--b">
       <div class="panel-head">
         <span class="panel-step">Context</span>
-        <h2 class="panel-title">This site &amp; link targets</h2>
+        <h2 class="panel-title">This site</h2>
       </div>
       <div class="frame">
         <div class="frame-inner"><img src="${imgB}" alt=""/></div>

@@ -7,10 +7,8 @@ export const settingsCardSite =
 export const settingsCardHead =
   "flex flex-row flex-wrap items-center gap-2 rounded-t-xl border-b-2 border-border-strong bg-card-head px-3 py-2.5 sm:px-4";
 
-const settingsCardBodyBase =
+export const settingsCardBody =
   "flex flex-col gap-1.5 bg-card-body-well p-2 sm:gap-2 sm:p-2.5";
-
-export const settingsCardBody = settingsCardBodyBase;
 
 export const settingsCardTitle =
   "min-w-0 text-lg font-bold leading-snug tracking-tight text-foreground sm:text-xl";

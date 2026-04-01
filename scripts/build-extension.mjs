@@ -16,7 +16,7 @@ const buildDir = path.join(projectRoot, "build");
 const distDir = path.join(projectRoot, "dist");
 
 const manifest = JSON.parse(
-  readFileSync(path.join(projectRoot, "manifest.json"), "utf8"),
+  readFileSync(path.join(projectRoot, "public/manifest.json"), "utf8"),
 );
 
 const version = manifest.version;

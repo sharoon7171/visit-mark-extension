@@ -31,7 +31,7 @@ async function removeVisitedCss(tabId: number): Promise<void> {
 }
 
 async function applyVisitedCss(tabId: number, plan: TabHighlightPlan): Promise<void> {
-  const css = buildVisitedLinkCss(plan.color, plan.visitTargetToggles);
+  const css = buildVisitedLinkCss(plan.color);
   const prev = injectedVisitedCssByTab.get(tabId);
   if (prev === css) {
     return;

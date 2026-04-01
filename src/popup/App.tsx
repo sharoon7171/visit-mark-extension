@@ -30,9 +30,8 @@ import {
   settingsCardGlobal,
   settingsCardHead,
   settingsCardSubhead,
-  settingsCardScopeGlobal,
-  settingsCardScopeSite,
-  settingsCardScopeSiteMuted,
+  settingsCardScopeBadge,
+  settingsCardScopeBadgeMuted,
   settingsCardSite,
   settingsCardTitle,
 } from "../../ui-classes/settings-card";
@@ -357,7 +356,7 @@ export function App({
         <section className={settingsCardGlobal}>
           <div className={settingsCardHead}>
             <h2 className={settingsCardTitle}>All sites</h2>
-            <p className={settingsCardScopeGlobal}>Default options</p>
+            <p className={settingsCardScopeBadge}>Default options</p>
           </div>
           <div className={settingsCardBody}>
             <SettingToggle
@@ -418,8 +417,8 @@ export function App({
             <p
               className={
                 siteDisabled
-                  ? settingsCardScopeSiteMuted
-                  : settingsCardScopeSite
+                  ? settingsCardScopeBadgeMuted
+                  : settingsCardScopeBadge
               }
             >
               {siteMeta}

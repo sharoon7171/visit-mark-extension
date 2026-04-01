@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "VisitMark - Highlight visited links with custom colors",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "description": "VisitMark highlights visited links in your chosen colors. Global default and site specific appearance. Settings sync with Chrome.",
   "icons": {
     "16": "icons/extension-icon.png",

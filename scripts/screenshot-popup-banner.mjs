@@ -7,10 +7,10 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 
 import { chromium } from "playwright";
 
-async function expandVisitmarkPopupForFullHeight(page) {
-  await page.evaluate(() => {
+async function expandVisitmarkPopupForFullHeight(page, widthPx) {
+  await page.evaluate((w) => {
     document.documentElement.style.cssText =
-      "width:600px!important;max-width:600px!important;height:auto!important;min-height:0!important;overflow:visible!important;";
+      `width:${w}px!important;max-width:${w}px!important;height:auto!important;min-height:0!important;overflow:visible!important;`;
     document.body.style.cssText =
       "margin:0!important;height:auto!important;overflow:visible!important;";
     const r = document.getElementById("root");
@@ -18,7 +18,7 @@ async function expandVisitmarkPopupForFullHeight(page) {
       r.style.cssText =
         "overflow:visible!important;height:auto!important;min-height:0!important;max-height:none!important;flex:none!important;";
     }
-  });
+  }, widthPx);
   for (let i = 0; i < 12; i += 1) {
     const changed = await page.evaluate(() => {
       let any = false;
@@ -99,7 +99,26 @@ const userDataDir = path.join(os.tmpdir(), `visitmark-screenshot-${Date.now()}`)
 
 const BANNER_W = 1280;
 const BANNER_H = 800;
-const POPUP_W = 600;
+const POPUP_CAPTURE_W = 720;
+const BANNER_SHELL_PAD_X = 24;
+const BANNER_SPINE_W = 16;
+const BANNER_PANEL_GUTTER = 16;
+const BANNER_STAGE_PAD_TOP = 18;
+const BANNER_STAGE_PAD_BOTTOM = 22;
+const PANEL_ABOVE_FRAME_RESERVE = 64;
+const PANEL_FRAME_MAX_W = Math.floor(
+  (BANNER_W -
+    BANNER_SHELL_PAD_X * 2 -
+    BANNER_SPINE_W -
+    BANNER_PANEL_GUTTER) /
+    2,
+);
+const FRAME_IMG_MAX_H =
+  BANNER_H -
+  3 -
+  BANNER_STAGE_PAD_TOP -
+  BANNER_STAGE_PAD_BOTTOM -
+  PANEL_ABOVE_FRAME_RESERVE;
 
 if (!existsSync(path.join(distDir, "manifest.json"))) {
   console.error("Missing dist/. Run: yarn build");
@@ -141,7 +160,7 @@ try {
   const extensionId = serviceWorker.url().split("/")[2];
 
   const page = await context.newPage();
-  await page.setViewportSize({ width: POPUP_W, height: 900 });
+  await page.setViewportSize({ width: POPUP_CAPTURE_W, height: 1200 });
   await page.goto(`chrome-extension://${extensionId}/popup.html`, {
     waitUntil: "load",
   });
@@ -150,10 +169,10 @@ try {
     timeout: 30000,
   });
   await page.evaluate(() => document.fonts.ready);
-  await expandVisitmarkPopupForFullHeight(page);
+  await expandVisitmarkPopupForFullHeight(page, POPUP_CAPTURE_W);
   const { width: fullW, height: fullH } = await readDocumentOuterSize(page);
   await page.setViewportSize({
-    width: Math.max(POPUP_W, fullW),
+    width: Math.max(POPUP_CAPTURE_W, fullW),
     height: fullH,
   });
   await page.evaluate(() => document.fonts.ready);
@@ -201,7 +220,7 @@ body {
   height: 100%;
   display: flex;
   flex-direction: column;
-  padding: 0 56px;
+  padding: 0 ${BANNER_SHELL_PAD_X}px;
 }
 .bg-bar {
   position: absolute;
@@ -222,24 +241,24 @@ body {
   align-items: center;
   justify-content: center;
   gap: 0;
-  padding: 48px 0 52px;
+  padding: ${BANNER_STAGE_PAD_TOP}px 0 ${BANNER_STAGE_PAD_BOTTOM}px;
 }
 .panel {
   flex: 1 1 0;
   min-width: 0;
-  max-width: 548px;
+  max-width: ${PANEL_FRAME_MAX_W}px;
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  gap: 14px;
+  gap: 8px;
 }
-.panel--a { padding-right: 24px; }
-.panel--b { padding-left: 24px; }
+.panel--a { padding-right: 8px; }
+.panel--b { padding-left: 8px; }
 .panel-head {
   display: flex;
   flex-direction: column;
-  gap: 5px;
-  padding: 0 2px 2px;
+  gap: 3px;
+  padding: 0 1px 0;
 }
 .panel-step {
   font-size: 10px;
@@ -249,11 +268,11 @@ body {
   color: #6b7280;
 }
 .panel-title {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 600;
   letter-spacing: -0.02em;
   color: #111827;
-  line-height: 1.35;
+  line-height: 1.25;
 }
 .frame {
   border-radius: 16px;
@@ -268,18 +287,18 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-height: 120px;
+  min-height: 80px;
   margin: 1px;
 }
 .frame img {
   display: block;
   width: 100%;
   height: auto;
-  max-height: 560px;
+  max-height: ${FRAME_IMG_MAX_H}px;
   object-fit: contain;
 }
 .spine {
-  width: 32px;
+  width: ${BANNER_SPINE_W}px;
   flex-shrink: 0;
   display: flex;
   align-items: center;
@@ -287,7 +306,7 @@ body {
 }
 .spine-rule {
   width: 1px;
-  height: 220px;
+  height: ${FRAME_IMG_MAX_H}px;
   background: #d1d5db;
 }
 </style>

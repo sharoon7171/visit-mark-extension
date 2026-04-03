@@ -1,9 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
-import { ColorSetting } from "@/components/ColorSetting";
-import { Footer } from "@/components/Footer";
-import { Header } from "@/components/Header";
-import { SettingToggle } from "@/components/SettingToggle";
+import { requestVisitmarkHighlightRefresh } from "@/highlight/refresh-message";
 import {
   clearHostSiteSettings,
   hostSiteSettingsAreDefaults,
@@ -11,7 +8,8 @@ import {
   persistHostSiteSettings,
   type HostSiteSettings,
   type PopupSyncFlushPayload,
-} from "@/extension-host-settings";
+} from "@/preferences/host-site-settings";
+import { POPUP_PORT_NAME } from "@/preferences/popup-sync-port";
 import {
   EXTENSION_SYNC_OPTION_KEYS,
   extensionOptionsAreDefaults,
@@ -20,9 +18,11 @@ import {
   resetExtensionSyncedOptionsToDefaults,
   subscribeExtensionSyncedOptions,
   type ExtensionSyncedOptions,
-} from "@/extension-options-sync";
-import { requestVisitmarkHighlightRefresh } from "@/lib/highlightRefreshMessage";
-import { POPUP_PORT_NAME } from "@/lib/popup-sync-port";
+} from "@/preferences/synced-options";
+import { ColorSetting } from "@/popup/components/ColorSetting";
+import { Footer } from "@/popup/components/Footer";
+import { Header } from "@/popup/components/Header";
+import { SettingToggle } from "@/popup/components/SettingToggle";
 
 import { popupShell, popupStack } from "../../ui-classes/popup-layout";
 import {

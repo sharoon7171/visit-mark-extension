@@ -1,4 +1,4 @@
-import { DEFAULT_VISITED_HEX, parseHexColor } from "@/lib/hexColor";
+import { DEFAULT_VISITED_HEX, parseHexColor } from "@/lib/hex-color";
 
 export const EXTENSION_SYNC_OPTION_KEYS = {
   defaultHighlightColor: "vl_defaultHighlightColor",

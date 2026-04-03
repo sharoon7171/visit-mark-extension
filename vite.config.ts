@@ -43,7 +43,7 @@ async function bundleServiceWorker(): Promise<void> {
         emptyOutDir: true,
         outDir: tmp,
         lib: {
-          entry: path.join(root, "src/background/index.ts"),
+          entry: path.join(root, "src/service-worker/index.ts"),
           name: "visitedlinksBg",
           formats: ["iife"],
           fileName: () => "background",

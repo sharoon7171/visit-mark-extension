@@ -6,7 +6,7 @@ import {
   toggleSwitchKnob,
   toggleSwitchTrack,
   toggleTextBlock,
-} from "../../ui-classes/setting-toggle";
+} from "../../../ui-classes/setting-toggle";
 
 type SettingToggleProps = {
   checked: boolean;

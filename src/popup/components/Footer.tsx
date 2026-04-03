@@ -8,7 +8,7 @@ import {
   footerCreditWrap,
   footerNav,
   footerRoot,
-} from "../../ui-classes/footer";
+} from "../../../ui-classes/footer";
 
 const REPO_URL = "https://github.com/sharoon7171/visit-mark-extension";
 const ISSUE_BUG_URL = `${REPO_URL}/issues/new?template=bug_report.yml`;

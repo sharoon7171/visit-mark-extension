@@ -1,12 +1,12 @@
 import {
   flushPopupSyncedState,
   type PopupSyncFlushPayload,
-} from "@/extension-host-settings";
-import { POPUP_PORT_NAME } from "@/lib/popup-sync-port";
+} from "@/preferences/host-site-settings";
+import { POPUP_PORT_NAME } from "@/preferences/popup-sync-port";
 
 type PopupStateMessage = { type: "state"; payload: PopupSyncFlushPayload };
 
-export function installPopupStorageSyncChannel(): void {
+export function installPopupSyncChannel(): void {
   chrome.runtime.onConnect.addListener((port) => {
     if (port.name !== POPUP_PORT_NAME) return;
     let last: PopupSyncFlushPayload | null = null;

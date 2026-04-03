@@ -1,8 +1,8 @@
 import {
   EXTENSION_SYNC_OPTION_KEYS,
   type ExtensionSyncedOptions,
-} from "@/extension-options-sync";
-import { parseHexColor } from "@/lib/hexColor";
+} from "@/preferences/synced-options";
+import { parseHexColor } from "@/lib/hex-color";
 
 export type HostSiteSettings = {
   customHighlightEnabled: boolean;

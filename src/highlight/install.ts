@@ -1,11 +1,8 @@
-import { EXTENSION_SYNC_OPTION_KEYS } from "@/extension-options-sync";
-import { VISITMARK_REFRESH_HIGHLIGHTS } from "@/lib/highlightRefreshMessage";
+import { EXTENSION_SYNC_OPTION_KEYS } from "@/preferences/synced-options";
+import { VISITMARK_REFRESH_HIGHLIGHTS } from "./refresh-message";
 
-import { loadHighlightBootstrap } from "./highlightBootstrap";
-import {
-  applyHighlightToTab,
-  forgetTabHighlightTracking,
-} from "./visitedTabApply";
+import { applyHighlightToTab } from "./apply-tab";
+import { loadHighlightBootstrap } from "./bootstrap";
 
 const RELEVANT_STORAGE_KEYS = new Set<string>([
   ...Object.values(EXTENSION_SYNC_OPTION_KEYS),
@@ -24,7 +21,7 @@ async function refreshAllHighlightTabs(): Promise<void> {
   );
 }
 
-export function installVisitedLinkHighlighting(): void {
+export function installHighlighting(): void {
   chrome.history.onVisitRemoved.addListener(() => {
     void refreshAllHighlightTabs();
   });
@@ -61,10 +58,6 @@ export function installVisitedLinkHighlighting(): void {
         await applyHighlightToTab(tabId, tab, synced, hostMap);
       } catch {}
     })();
-  });
-
-  chrome.tabs.onRemoved.addListener((tabId) => {
-    forgetTabHighlightTracking(tabId);
   });
 
   chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {

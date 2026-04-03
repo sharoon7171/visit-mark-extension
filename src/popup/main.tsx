@@ -6,8 +6,8 @@ import "@fontsource/poppins/latin-600.css";
 import "@fontsource/poppins/latin-700.css";
 
 import "@/global.css";
-import { loadHostSiteSettingsModel } from "@/extension-host-settings";
-import { loadExtensionSyncedOptions } from "@/extension-options-sync";
+import { loadHostSiteSettingsModel } from "@/preferences/host-site-settings";
+import { loadExtensionSyncedOptions } from "@/preferences/synced-options";
 
 import { App } from "./App";
 

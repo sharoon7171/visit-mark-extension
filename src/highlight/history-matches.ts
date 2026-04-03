@@ -1,4 +1,4 @@
-import { normalizeUrlForHistoryMatch } from "@/lib/urlNormalize";
+import { normalizeUrlForHistoryMatch } from "./url-normalize";
 
 const RAW_HREF_BATCH = 80;
 

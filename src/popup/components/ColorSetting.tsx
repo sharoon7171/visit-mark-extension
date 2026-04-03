@@ -1,6 +1,6 @@
 import { HexColorPicker } from "react-colorful";
 
-import { DEFAULT_VISITED_HEX } from "@/lib/hexColor";
+import { DEFAULT_VISITED_HEX } from "@/lib/hex-color";
 
 import {
   colorFieldRoot,
@@ -13,7 +13,7 @@ import {
   colorPickerEmbed,
   colorPickerRoot,
   colorSwatch,
-} from "../../ui-classes/color-field";
+} from "../../../ui-classes/color-field";
 
 type ColorSettingProps = {
   hint?: string;

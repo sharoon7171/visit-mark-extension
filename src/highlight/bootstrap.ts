@@ -2,11 +2,11 @@ import {
   defaultHostSiteSettings,
   loadPerHostSiteSettingsMap,
   type HostSiteSettings,
-} from "@/extension-host-settings";
+} from "@/preferences/host-site-settings";
 import {
   loadExtensionSyncedOptions,
   type ExtensionSyncedOptions,
-} from "@/extension-options-sync";
+} from "@/preferences/synced-options";
 
 type TabHighlightPlan = {
   active: boolean;

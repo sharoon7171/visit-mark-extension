@@ -5,7 +5,7 @@ import {
   headerTagline,
   headerTitle,
   headerTitles,
-} from "../../ui-classes/header";
+} from "../../../ui-classes/header";
 
 const HEADER_ICON_PATH = "icons/extension-icon.png";
 

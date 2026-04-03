@@ -1,15 +1,16 @@
-import type { ExtensionSyncedOptions } from "@/extension-options-sync";
 import type { HostSiteSettings } from "@/extension-host-settings";
+import type { ExtensionSyncedOptions } from "@/extension-options-sync";
+
 import { isInjectablePageUrl, planHighlightForPageUrl } from "./highlightBootstrap";
 import { listNormalizedUrlsWithHistoryVisits } from "./historyVisitsLookup";
 import {
-  visitmarkApplyHistoryHighlights,
-  visitmarkCleanupHistoryHighlights,
-  visitmarkCollectAnchorHrefs,
+  applyHistoryHighlightColor,
+  clearHistoryHighlightsOnPage,
+  collectAnchorHrefsFromPage,
 } from "./pageScripts";
 import {
+  LEGACY_NEUTRALIZE_VISITED_LINK_CSS,
   buildVisitedLinkCss,
-  NEUTRALIZE_VISITED_LINK_CSS,
 } from "./visitedLinkCss";
 
 const injectedVisitedCssByTab = new Map<number, string>();
@@ -29,7 +30,7 @@ async function removeVisitedCss(tabId: number): Promise<void> {
   injectedVisitedCssByTab.delete(tabId);
 }
 
-async function applyInsetCss(tabId: number, css: string): Promise<void> {
+async function applyInjectedCss(tabId: number, css: string): Promise<void> {
   const prev = injectedVisitedCssByTab.get(tabId);
   if (prev === css) {
     return;
@@ -48,7 +49,7 @@ async function applyInsetCss(tabId: number, css: string): Promise<void> {
 async function cleanupHistoryHighlights(tabId: number): Promise<void> {
   try {
     await chrome.scripting.executeScript({
-      func: visitmarkCleanupHistoryHighlights,
+      func: clearHistoryHighlightsOnPage,
       target: { tabId },
     });
   } catch {}
@@ -73,9 +74,15 @@ export async function applyHighlightToTab(
     return;
   }
   if (!plan.active) {
-    await applyInsetCss(tabId, NEUTRALIZE_VISITED_LINK_CSS);
+    await removeVisitedCss(tabId);
+    try {
+      await chrome.scripting.removeCSS({
+        css: LEGACY_NEUTRALIZE_VISITED_LINK_CSS,
+        target: { tabId },
+      });
+    } catch {}
   } else if (plan.visitedCss) {
-    await applyInsetCss(tabId, buildVisitedLinkCss(plan.color));
+    await applyInjectedCss(tabId, buildVisitedLinkCss(plan.color));
   } else {
     await removeVisitedCss(tabId);
   }
@@ -83,7 +90,7 @@ export async function applyHighlightToTab(
     let hrefs: string[] = [];
     try {
       const [res] = await chrome.scripting.executeScript({
-        func: visitmarkCollectAnchorHrefs,
+        func: collectAnchorHrefsFromPage,
         target: { tabId },
       });
       hrefs = (res?.result as string[]) ?? [];
@@ -97,7 +104,7 @@ export async function applyHighlightToTab(
       try {
         await chrome.scripting.executeScript({
           args: [plan.color, matches],
-          func: visitmarkApplyHistoryHighlights,
+          func: applyHistoryHighlightColor,
           target: { tabId },
         });
       } catch {}

@@ -57,18 +57,6 @@ export async function loadExtensionSyncedOptions(): Promise<ExtensionSyncedOptio
   return fromRecord(stored as Record<string, unknown>);
 }
 
-export async function resetExtensionSyncedOptionsToDefaults(): Promise<void> {
-  await chrome.storage.sync.set({
-    [EXTENSION_SYNC_OPTION_KEYS.defaultHighlightColor]:
-      DEFAULTS.defaultHighlightColor,
-    [EXTENSION_SYNC_OPTION_KEYS.highlightHistoryLinksEnabled]:
-      DEFAULTS.highlightHistoryLinksEnabled,
-    [EXTENSION_SYNC_OPTION_KEYS.highlightVisitedCssEnabled]:
-      DEFAULTS.highlightVisitedCssEnabled,
-    [EXTENSION_SYNC_OPTION_KEYS.masterEnabled]: DEFAULTS.masterEnabled,
-  });
-}
-
 export async function persistExtensionSyncedOptions(
   o: ExtensionSyncedOptions,
 ): Promise<void> {
@@ -79,6 +67,18 @@ export async function persistExtensionSyncedOptions(
     [EXTENSION_SYNC_OPTION_KEYS.highlightVisitedCssEnabled]:
       o.highlightVisitedCssEnabled,
     [EXTENSION_SYNC_OPTION_KEYS.masterEnabled]: o.masterEnabled,
+  });
+}
+
+export async function resetExtensionSyncedOptionsToDefaults(): Promise<void> {
+  await chrome.storage.sync.set({
+    [EXTENSION_SYNC_OPTION_KEYS.defaultHighlightColor]:
+      DEFAULTS.defaultHighlightColor,
+    [EXTENSION_SYNC_OPTION_KEYS.highlightHistoryLinksEnabled]:
+      DEFAULTS.highlightHistoryLinksEnabled,
+    [EXTENSION_SYNC_OPTION_KEYS.highlightVisitedCssEnabled]:
+      DEFAULTS.highlightVisitedCssEnabled,
+    [EXTENSION_SYNC_OPTION_KEYS.masterEnabled]: DEFAULTS.masterEnabled,
   });
 }
 

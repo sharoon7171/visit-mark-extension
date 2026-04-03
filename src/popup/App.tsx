@@ -1,6 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
-import { POPUP_PORT_NAME } from "@/background/popupStorageSyncChannel";
 import { ColorSetting } from "@/components/ColorSetting";
 import { Footer } from "@/components/Footer";
 import { Header } from "@/components/Header";
@@ -14,46 +13,45 @@ import {
   type PopupSyncFlushPayload,
 } from "@/extension-host-settings";
 import {
-  type ExtensionSyncedOptions,
   EXTENSION_SYNC_OPTION_KEYS,
   extensionOptionsAreDefaults,
   loadExtensionSyncedOptions,
   persistExtensionSyncedOptions,
   resetExtensionSyncedOptionsToDefaults,
   subscribeExtensionSyncedOptions,
+  type ExtensionSyncedOptions,
 } from "@/extension-options-sync";
 import { requestVisitmarkHighlightRefresh } from "@/lib/highlightRefreshMessage";
+import { POPUP_PORT_NAME } from "@/lib/popup-sync-port";
 
 import { popupShell, popupStack } from "../../ui-classes/popup-layout";
 import {
   settingsCardBody,
   settingsCardGlobal,
   settingsCardHead,
-  settingsCardSubhead,
   settingsCardScopeBadge,
   settingsCardScopeBadgeMuted,
   settingsCardSite,
+  settingsCardSubhead,
   settingsCardTitle,
 } from "../../ui-classes/settings-card";
-import {
-  toggleDescription,
-  toggleLabel,
-} from "../../ui-classes/setting-toggle";
 import {
   settingsResetButton,
   settingsResetCopy,
   settingsResetRow,
 } from "../../ui-classes/settings-reset";
+import {
+  toggleDescription,
+  toggleLabel,
+} from "../../ui-classes/setting-toggle";
 
 type AppProps = {
-  initialHostPersisted: boolean;
   initialHostSettings: HostSiteSettings;
   initialHostname: string | null;
   initialSyncedOptions: ExtensionSyncedOptions;
 };
 
 export function App({
-  initialHostPersisted,
   initialHostSettings,
   initialHostname,
   initialSyncedOptions,
@@ -70,7 +68,6 @@ export function App({
   const [highlightHistoryLinksEnabled, setHighlightHistoryLinksEnabled] =
     useState(initialSyncedOptions.highlightHistoryLinksEnabled);
   const [hostSettings, setHostSettings] = useState(initialHostSettings);
-  const [hostPersisted, setHostPersisted] = useState(initialHostPersisted);
 
   const defaultColorRef = useRef(initialSyncedOptions.defaultHighlightColor);
   const masterEnabledRef = useRef(initialSyncedOptions.masterEnabled);
@@ -89,9 +86,7 @@ export function App({
     masterEnabled: initialSyncedOptions.masterEnabled,
   });
   const initialHostRef = useRef<HostSiteSettings>({
-    siteColorsEnabled: initialHostSettings.siteColorsEnabled,
-    customHighlightEnabled: initialHostSettings.customHighlightEnabled,
-    highlightColor: initialHostSettings.highlightColor,
+    ...initialHostSettings,
   });
 
   defaultColorRef.current = defaultHighlightColor;
@@ -106,6 +101,8 @@ export function App({
       highlightHistoryLinksEnabled: highlightHistoryLinksRef.current,
       highlightVisitedCssEnabled: highlightVisitedCssRef.current,
       masterEnabled: masterEnabledRef.current,
+    }).then(() => {
+      requestVisitmarkHighlightRefresh();
     });
   };
 
@@ -134,16 +131,8 @@ export function App({
         highlightVisitedCssEnabled: highlightVisitedCssRef.current,
         masterEnabled: masterEnabledRef.current,
       },
-      initialHost: {
-        siteColorsEnabled: initialHostRef.current.siteColorsEnabled,
-        customHighlightEnabled: initialHostRef.current.customHighlightEnabled,
-        highlightColor: initialHostRef.current.highlightColor,
-      },
-      currentHost: {
-        siteColorsEnabled: hostSettingsRef.current.siteColorsEnabled,
-        customHighlightEnabled: hostSettingsRef.current.customHighlightEnabled,
-        highlightColor: hostSettingsRef.current.highlightColor,
-      },
+      initialHost: { ...initialHostRef.current },
+      currentHost: { ...hostSettingsRef.current },
     };
     port.postMessage({ type: "state", payload });
   });
@@ -190,17 +179,10 @@ export function App({
       if (area !== "sync" || !changes.vl_perHost) {
         return;
       }
-      void loadHostSiteSettingsModel(initialHostname).then(
-        ({ settings, persisted }) => {
-          setHostSettings(settings);
-          setHostPersisted(persisted);
-          initialHostRef.current = {
-            siteColorsEnabled: settings.siteColorsEnabled,
-            customHighlightEnabled: settings.customHighlightEnabled,
-            highlightColor: settings.highlightColor,
-          };
-        },
-      );
+      void loadHostSiteSettingsModel(initialHostname).then(({ settings }) => {
+        setHostSettings(settings);
+        initialHostRef.current = { ...settings };
+      });
     };
     chrome.storage.onChanged.addListener(handler);
     return () => {
@@ -261,6 +243,7 @@ export function App({
         next = {
           ...prev,
           customHighlightEnabled: false,
+          highlightColor: null,
         };
       }
       hostSettingsRef.current = next;
@@ -296,16 +279,11 @@ export function App({
       highlightHistoryLinksRef.current = next.highlightHistoryLinksEnabled;
       initialGlobalRef.current = { ...next };
       if (initialHostname) {
-        const { settings, persisted } =
-          await loadHostSiteSettingsModel(initialHostname);
+        const { settings } = await loadHostSiteSettingsModel(initialHostname);
         setHostSettings(settings);
-        setHostPersisted(persisted);
-        initialHostRef.current = {
-          siteColorsEnabled: settings.siteColorsEnabled,
-          customHighlightEnabled: settings.customHighlightEnabled,
-          highlightColor: settings.highlightColor,
-        };
+        initialHostRef.current = { ...settings };
       }
+      requestVisitmarkHighlightRefresh();
     })();
   };
 
@@ -316,15 +294,9 @@ export function App({
     void (async () => {
       await clearHostSiteSettings(initialHostname);
       requestVisitmarkHighlightRefresh();
-      const { settings, persisted } =
-        await loadHostSiteSettingsModel(initialHostname);
+      const { settings } = await loadHostSiteSettingsModel(initialHostname);
       setHostSettings(settings);
-      setHostPersisted(persisted);
-      initialHostRef.current = {
-        siteColorsEnabled: settings.siteColorsEnabled,
-        customHighlightEnabled: settings.customHighlightEnabled,
-        highlightColor: settings.highlightColor,
-      };
+      initialHostRef.current = { ...settings };
     })();
   };
 
@@ -342,8 +314,7 @@ export function App({
     masterEnabled,
   });
   const showSiteRemove =
-    Boolean(initialHostname) &&
-    (hostPersisted || !hostSiteSettingsAreDefaults(hostSettings));
+    Boolean(initialHostname) && !hostSiteSettingsAreDefaults(hostSettings);
 
   return (
     <div className={popupShell}>
@@ -358,7 +329,7 @@ export function App({
             <SettingToggle
               id="global-enabled"
               label="Visited link highlighting"
-              description="On: your colors and rules apply everywhere. Off: only the browser's default visited styling."
+              description="On: your colors and rules apply everywhere. Off: extension does not inject styles; the page's own CSS applies."
               checked={masterEnabled}
               onChange={setMasterEnabledPersist}
             />

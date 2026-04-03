@@ -5,18 +5,30 @@ import {
 import { parseHexColor } from "@/lib/hexColor";
 
 export type HostSiteSettings = {
-  siteColorsEnabled: boolean;
   customHighlightEnabled: boolean;
   highlightColor: string | null;
+  siteColorsEnabled: boolean;
 };
 
 const STORAGE_KEY = "vl_perHost";
 
 export const defaultHostSiteSettings: HostSiteSettings = {
-  siteColorsEnabled: true,
   customHighlightEnabled: false,
   highlightColor: null,
+  siteColorsEnabled: true,
 };
+
+function hostSiteSettingsEqual(a: HostSiteSettings, b: HostSiteSettings): boolean {
+  return (
+    a.customHighlightEnabled === b.customHighlightEnabled &&
+    a.highlightColor === b.highlightColor &&
+    a.siteColorsEnabled === b.siteColorsEnabled
+  );
+}
+
+export function hostSiteSettingsAreDefaults(s: HostSiteSettings): boolean {
+  return hostSiteSettingsEqual(s, defaultHostSiteSettings);
+}
 
 function parseHostEntry(raw: unknown): HostSiteSettings {
   if (!raw || typeof raw !== "object") {
@@ -47,9 +59,9 @@ function parseHostEntry(raw: unknown): HostSiteSettings {
     customHighlightEnabled = false;
   }
   return {
-    siteColorsEnabled,
     customHighlightEnabled,
     highlightColor,
+    siteColorsEnabled,
   };
 }
 
@@ -88,6 +100,21 @@ function stripLegacyFollowGlobalEntries(raw: Record<string, unknown>): {
   return { next, changed };
 }
 
+function stripRedundantDefaultHostEntries(raw: Record<string, unknown>): {
+  next: Record<string, unknown>;
+  changed: boolean;
+} {
+  const next: Record<string, unknown> = { ...raw };
+  let changed = false;
+  for (const [host, entry] of Object.entries(next)) {
+    if (hostSiteSettingsAreDefaults(parseHostEntry(entry))) {
+      delete next[host];
+      changed = true;
+    }
+  }
+  return { next, changed };
+}
+
 export async function loadPerHostSiteSettingsMap(): Promise<
   Record<string, HostSiteSettings>
 > {
@@ -97,8 +124,10 @@ export async function loadPerHostSiteSettingsMap(): Promise<
     return {};
   }
   const rawObj = rawRoot as Record<string, unknown>;
-  const { next, changed } = stripLegacyFollowGlobalEntries(rawObj);
-  if (changed) {
+  const strippedLegacy = stripLegacyFollowGlobalEntries(rawObj);
+  const strippedDefaults = stripRedundantDefaultHostEntries(strippedLegacy.next);
+  const next = strippedDefaults.next;
+  if (strippedLegacy.changed || strippedDefaults.changed) {
     await chrome.storage.sync.set({ [STORAGE_KEY]: next });
   }
   return parseMap(next);
@@ -112,24 +141,19 @@ export async function persistHostSiteSettings(
     return;
   }
   const map = await loadPerHostSiteSettingsMap();
+  if (hostSiteSettingsAreDefaults(settings)) {
+    if (hostname in map) {
+      delete map[hostname];
+      await chrome.storage.sync.set({ [STORAGE_KEY]: map });
+    }
+    return;
+  }
   map[hostname] = {
     customHighlightEnabled: settings.customHighlightEnabled,
     highlightColor: settings.highlightColor,
     siteColorsEnabled: settings.siteColorsEnabled,
   };
   await chrome.storage.sync.set({ [STORAGE_KEY]: map });
-}
-
-function hostSiteSettingsEqual(a: HostSiteSettings, b: HostSiteSettings): boolean {
-  return (
-    a.siteColorsEnabled === b.siteColorsEnabled &&
-    a.customHighlightEnabled === b.customHighlightEnabled &&
-    a.highlightColor === b.highlightColor
-  );
-}
-
-export function hostSiteSettingsAreDefaults(s: HostSiteSettings): boolean {
-  return hostSiteSettingsEqual(s, defaultHostSiteSettings);
 }
 
 type HostSiteSettingsModel = {
@@ -180,11 +204,16 @@ export async function flushPopupSyncedState(
     input.currentHost.highlightColor !== input.initialHost.highlightColor
   ) {
     const map = await loadPerHostSiteSettingsMap();
-    map[input.hostname] = {
-      siteColorsEnabled: input.currentHost.siteColorsEnabled,
+    const merged: HostSiteSettings = {
       customHighlightEnabled: input.currentHost.customHighlightEnabled,
       highlightColor: input.currentHost.highlightColor,
+      siteColorsEnabled: input.currentHost.siteColorsEnabled,
     };
+    if (hostSiteSettingsAreDefaults(merged)) {
+      delete map[input.hostname];
+    } else {
+      map[input.hostname] = merged;
+    }
     payload[STORAGE_KEY] = map;
   }
   if (Object.keys(payload).length > 0) {

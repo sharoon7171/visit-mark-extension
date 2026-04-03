@@ -72,5 +72,5 @@ export async function listNormalizedUrlsWithHistoryVisits(
       }
     }
   }
-  return Array.from(matchedNorm).sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
+  return [...matchedNorm].sort((a, b) => a.localeCompare(b));
 }

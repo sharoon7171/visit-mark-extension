@@ -1,5 +1,6 @@
 import { EXTENSION_SYNC_OPTION_KEYS } from "@/extension-options-sync";
 import { VISITMARK_REFRESH_HIGHLIGHTS } from "@/lib/highlightRefreshMessage";
+
 import { loadHighlightBootstrap } from "./highlightBootstrap";
 import {
   applyHighlightToTab,
@@ -24,6 +25,14 @@ async function refreshAllHighlightTabs(): Promise<void> {
 }
 
 export function installVisitedLinkHighlighting(): void {
+  chrome.history.onVisitRemoved.addListener(() => {
+    void refreshAllHighlightTabs();
+  });
+
+  chrome.history.onVisited.addListener(() => {
+    void refreshAllHighlightTabs();
+  });
+
   chrome.runtime.onMessage.addListener((message) => {
     if (
       message &&
@@ -44,16 +53,6 @@ export function installVisitedLinkHighlighting(): void {
     void refreshAllHighlightTabs();
   });
 
-  chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
-    if (changeInfo.status !== "complete" || !tab.url) {
-      return;
-    }
-    void (async () => {
-      const { hostMap, synced } = await loadHighlightBootstrap();
-      await applyHighlightToTab(tabId, tab, synced, hostMap);
-    })();
-  });
-
   chrome.tabs.onActivated.addListener(({ tabId }) => {
     void (async () => {
       try {
@@ -68,6 +67,16 @@ export function installVisitedLinkHighlighting(): void {
     forgetTabHighlightTracking(tabId);
   });
 
+  chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+    if (changeInfo.status !== "complete" || !tab.url) {
+      return;
+    }
+    void (async () => {
+      const { hostMap, synced } = await loadHighlightBootstrap();
+      await applyHighlightToTab(tabId, tab, synced, hostMap);
+    })();
+  });
+
   chrome.webNavigation.onHistoryStateUpdated.addListener((d) => {
     if (d.frameId !== 0) {
       return;
@@ -79,14 +88,6 @@ export function installVisitedLinkHighlighting(): void {
         await applyHighlightToTab(d.tabId, tab, synced, hostMap);
       } catch {}
     })();
-  });
-
-  chrome.history.onVisited.addListener(() => {
-    void refreshAllHighlightTabs();
-  });
-
-  chrome.history.onVisitRemoved.addListener(() => {
-    void refreshAllHighlightTabs();
   });
 
   void refreshAllHighlightTabs();

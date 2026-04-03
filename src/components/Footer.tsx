@@ -10,10 +10,10 @@ import {
   footerRoot,
 } from "../../ui-classes/footer";
 
-const SQ_TECH_URL = "https://www.sqtech.dev/";
 const REPO_URL = "https://github.com/sharoon7171/visit-mark-extension";
-const ISSUE_FEATURE_URL = `${REPO_URL}/issues/new?template=feature_request.yml`;
 const ISSUE_BUG_URL = `${REPO_URL}/issues/new?template=bug_report.yml`;
+const ISSUE_FEATURE_URL = `${REPO_URL}/issues/new?template=feature_request.yml`;
+const SQ_TECH_URL = "https://www.sqtech.dev/";
 
 export function Footer() {
   return (

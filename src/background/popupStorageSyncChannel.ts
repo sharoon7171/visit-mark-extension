@@ -2,8 +2,7 @@ import {
   flushPopupSyncedState,
   type PopupSyncFlushPayload,
 } from "@/extension-host-settings";
-
-export const POPUP_PORT_NAME = "visitedlinks-popup";
+import { POPUP_PORT_NAME } from "@/lib/popup-sync-port";
 
 type PopupStateMessage = { type: "state"; payload: PopupSyncFlushPayload };
 

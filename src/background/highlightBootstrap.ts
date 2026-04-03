@@ -15,6 +15,15 @@ type TabHighlightPlan = {
   visitedCss: boolean;
 };
 
+export function isInjectablePageUrl(url: string): boolean {
+  try {
+    const p = new URL(url).protocol;
+    return p === "http:" || p === "https:";
+  } catch {
+    return false;
+  }
+}
+
 export async function loadHighlightBootstrap(): Promise<{
   hostMap: Record<string, HostSiteSettings>;
   synced: ExtensionSyncedOptions;
@@ -49,13 +58,4 @@ export function planHighlightForPageUrl(
     historyHighlight: active && synced.highlightHistoryLinksEnabled,
     visitedCss: active && synced.highlightVisitedCssEnabled,
   };
-}
-
-export function isInjectablePageUrl(url: string): boolean {
-  try {
-    const p = new URL(url).protocol;
-    return p === "http:" || p === "https:";
-  } catch {
-    return false;
-  }
 }

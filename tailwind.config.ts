@@ -12,12 +12,6 @@ export default {
       borderRadius: designRadius,
       boxShadow: designShadows,
       colors: designColors,
-      height: {
-        "extension-popup": designExtensionPopup.height,
-      },
-      width: {
-        "extension-popup": designExtensionPopup.width,
-      },
       fontFamily: {
         sans: [
           designFonts.sans,
@@ -27,6 +21,12 @@ export default {
         ],
       },
       fontSize: designFontSize,
+      height: {
+        "extension-popup": designExtensionPopup.height,
+      },
+      width: {
+        "extension-popup": designExtensionPopup.width,
+      },
     },
   },
 } satisfies Config;

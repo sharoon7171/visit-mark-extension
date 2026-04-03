@@ -22,6 +22,7 @@ import {
 import { ColorSetting } from "@/popup/components/ColorSetting";
 import { Footer } from "@/popup/components/Footer";
 import { Header } from "@/popup/components/Header";
+import { ReviewPrompt } from "@/popup/components/ReviewPrompt";
 import { SettingToggle } from "@/popup/components/SettingToggle";
 
 import { popupShell, popupStack } from "../../ui-classes/popup-layout";
@@ -48,14 +49,19 @@ import {
 type AppProps = {
   initialHostSettings: HostSiteSettings;
   initialHostname: string | null;
+  initialShowReviewPrompt: boolean;
   initialSyncedOptions: ExtensionSyncedOptions;
 };
 
 export function App({
   initialHostSettings,
   initialHostname,
+  initialShowReviewPrompt,
   initialSyncedOptions,
 }: AppProps) {
+  const [reviewPromptOpen, setReviewPromptOpen] = useState(
+    initialShowReviewPrompt,
+  );
   const [masterEnabled, setMasterEnabled] = useState(
     initialSyncedOptions.masterEnabled,
   );
@@ -320,6 +326,9 @@ export function App({
     <div className={popupShell}>
       <Header />
       <div className={popupStack}>
+        {reviewPromptOpen ? (
+          <ReviewPrompt onDismiss={() => setReviewPromptOpen(false)} />
+        ) : null}
         <section className={settingsCardGlobal}>
           <div className={settingsCardHead}>
             <h2 className={settingsCardTitle}>Global</h2>

@@ -31,6 +31,11 @@ export const designColors = {
     muted: "#475569",
     subtle: "#64748b",
   },
+  review: {
+    star: {
+      DEFAULT: "#eab308",
+    },
+  },
   header: {
     bg: "#0f172a",
     border: "#1e293b",

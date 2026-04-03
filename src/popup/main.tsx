@@ -7,6 +7,7 @@ import "@fontsource/poppins/latin-700.css";
 
 import "@/global.css";
 import { loadHostSiteSettingsModel } from "@/preferences/host-site-settings";
+import { loadReviewPromptShouldShow } from "@/preferences/review-prompt-local";
 import { loadExtensionSyncedOptions } from "@/preferences/synced-options";
 
 import { App } from "./App";
@@ -34,6 +35,7 @@ void (async () => {
   } catch {}
   const initialHostname = await activeTabHostname();
   const initialSyncedOptions = await loadExtensionSyncedOptions();
+  const initialShowReviewPrompt = await loadReviewPromptShouldShow();
   const { settings: initialHostSettings } = await loadHostSiteSettingsModel(
     initialHostname ?? "",
   );
@@ -41,6 +43,7 @@ void (async () => {
     <App
       initialHostSettings={initialHostSettings}
       initialHostname={initialHostname}
+      initialShowReviewPrompt={initialShowReviewPrompt}
       initialSyncedOptions={initialSyncedOptions}
     />,
   );

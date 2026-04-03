@@ -13,12 +13,7 @@ export default {
       boxShadow: designShadows,
       colors: designColors,
       fontFamily: {
-        sans: [
-          designFonts.sans,
-          "ui-sans-serif",
-          "system-ui",
-          "sans-serif",
-        ],
+        sans: [designFonts.sans],
       },
       fontSize: designFontSize,
       height: {

@@ -1,3 +1,5 @@
+import { chromeWebStoreReviewsUrl } from "@/preferences/review-prompt-local";
+
 import {
   footerActionGroup,
   footerActionGroupItem,
@@ -34,9 +36,21 @@ export function Footer() {
         </div>
         <nav
           className={footerNav}
-          aria-label="GitHub feedback"
+          aria-label="Feedback and reviews"
         >
           <div className={footerActionGroup}>
+            <a
+              className={footerActionGroupItem}
+              href={chromeWebStoreReviewsUrl()}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Leave a review
+            </a>
+            <span
+              className={footerActionGroupRule}
+              aria-hidden
+            />
             <a
               className={footerActionGroupItem}
               href={ISSUE_FEATURE_URL}

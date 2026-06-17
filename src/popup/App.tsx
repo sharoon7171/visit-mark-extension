@@ -23,28 +23,15 @@ import { ColorSetting } from "@/popup/components/ColorSetting";
 import { Footer } from "@/popup/components/Footer";
 import { Header } from "@/popup/components/Header";
 import { ReviewPrompt } from "@/popup/components/ReviewPrompt";
-import { SettingToggle } from "@/popup/components/SettingToggle";
+import { SettingsSection } from "@/popup/components/SettingsSection";
+import { Toggle } from "@/popup/components/Toggle";
 
-import { popupShell, popupStack } from "../../ui-classes/popup-layout";
+import { buttonSecondary } from "../../ui-classes/control";
 import {
-  settingsCardBody,
-  settingsCardGlobal,
-  settingsCardHead,
-  settingsCardScopeBadge,
-  settingsCardScopeBadgeMuted,
-  settingsCardSite,
-  settingsCardSubhead,
-  settingsCardTitle,
-} from "../../ui-classes/settings-card";
-import {
-  settingsResetButton,
-  settingsResetCopy,
-  settingsResetRow,
-} from "../../ui-classes/settings-reset";
-import {
-  toggleDescription,
-  toggleLabel,
-} from "../../ui-classes/setting-toggle";
+  appShell,
+  popupMainStack,
+  settingRow,
+} from "../../ui-classes/layout";
 
 type AppProps = {
   initialHostSettings: HostSiteSettings;
@@ -306,12 +293,13 @@ export function App({
     })();
   };
 
-  const siteMeta = initialHostname ? initialHostname : "No website open";
-
-  const siteDisabled = !initialHostname;
-  const siteControlsDisabled = siteDisabled || !masterEnabled;
-  const siteCustomColorToggleDisabled =
+  const globalDisabled = !masterEnabled;
+  const siteControlsDisabled = !initialHostname || globalDisabled;
+  const siteCustomColorDisabled =
     siteControlsDisabled || !hostSettings.siteColorsEnabled;
+  const statusCaption = masterEnabled
+    ? "Active and highlighting visited links"
+    : "Disabled";
 
   const showGlobalRestore = !extensionOptionsAreDefaults({
     defaultHighlightColor,
@@ -323,132 +311,118 @@ export function App({
     Boolean(initialHostname) && !hostSiteSettingsAreDefaults(hostSettings);
 
   return (
-    <div className={popupShell}>
-      <Header />
-      <div className={popupStack}>
-        {reviewPromptOpen ? (
-          <ReviewPrompt onDismiss={() => setReviewPromptOpen(false)} />
-        ) : null}
-        <section className={settingsCardGlobal}>
-          <div className={settingsCardHead}>
-            <h2 className={settingsCardTitle}>Global</h2>
-            <p className={settingsCardScopeBadge}>Default settings</p>
-          </div>
-          <div className={settingsCardBody}>
-            <SettingToggle
+    <div className={appShell}>
+      <Header title="VisitMark" subtitle="Visited link colors" />
+      <main className="min-h-0 flex-1 overflow-y-auto overscroll-y-contain">
+        <div className={popupMainStack}>
+          {reviewPromptOpen ? (
+            <ReviewPrompt onDismiss={() => setReviewPromptOpen(false)} />
+          ) : null}
+          <SettingsSection description={statusCaption} title="Extension">
+            <Toggle
               id="global-enabled"
-              label="Visited link highlighting"
-              description="On: your colors and rules apply everywhere. Off: extension does not inject styles; the page's own CSS applies."
+              label="Enable VisitMark"
+              description="Highlight visited links across the web"
               checked={masterEnabled}
               onChange={setMasterEnabledPersist}
+              className={settingRow}
             />
-            <p className={settingsCardSubhead} id="detection-heading">
-              What counts as visited
-            </p>
-            <SettingToggle
+          </SettingsSection>
+          {initialHostname ? (
+            <SettingsSection description={initialHostname} title="This site">
+              <Toggle
+                id="site-enabled"
+                label="Use on this site"
+                description="Off keeps this site's normal link colors"
+                checked={hostSettings.siteColorsEnabled}
+                onChange={setSiteColorsEnabledPersist}
+                disabled={siteControlsDisabled}
+                className={settingRow}
+              />
+              {!siteControlsDisabled && hostSettings.siteColorsEnabled ? (
+                <>
+                  <Toggle
+                    id="site-custom-color"
+                    label="Custom highlight color"
+                    description="Override your default color on this site"
+                    checked={hostSettings.customHighlightEnabled}
+                    onChange={setCustomHighlightEnabledPersist}
+                    disabled={siteCustomColorDisabled}
+                    className={settingRow}
+                  />
+                  {hostSettings.customHighlightEnabled ? (
+                    <div className={settingRow}>
+                      <ColorSetting
+                        id="site-color"
+                        label="Site color"
+                        value={
+                          hostSettings.highlightColor ?? defaultHighlightColor
+                        }
+                        onChange={setSiteHighlightColorPersist}
+                      />
+                    </div>
+                  ) : null}
+                </>
+              ) : null}
+              {showSiteRemove ? (
+                <div className={settingRow}>
+                  <button
+                    type="button"
+                    className={buttonSecondary}
+                    onClick={resetThisSiteOnly}
+                    disabled={siteControlsDisabled}
+                  >
+                    Reset site settings
+                  </button>
+                </div>
+              ) : null}
+            </SettingsSection>
+          ) : null}
+          <SettingsSection title="Default color">
+            <div className={settingRow}>
+              <ColorSetting
+                id="global-color"
+                label="Highlight color"
+                value={defaultHighlightColor}
+                onChange={setDefaultHighlightColorPersist}
+                disabled={globalDisabled}
+              />
+            </div>
+          </SettingsSection>
+          <SettingsSection
+            description="Choose what counts as visited"
+            title="Detection"
+          >
+            <Toggle
               id="global-visited-css"
-              label="Browser-marked links"
-              description="Treat links the browser already shows as visited."
+              label="Clicked links"
+              description="Links Chrome already marks as visited"
               checked={highlightVisitedCssEnabled}
               onChange={setHighlightVisitedCssPersist}
-              disabled={!masterEnabled}
+              disabled={globalDisabled}
+              className={settingRow}
             />
-            <SettingToggle
+            <Toggle
               id="global-history-urls"
-              label="Browsing history"
-              description="Also treat URLs that appear in your history (including synced history)."
+              label="History matches"
+              description="URLs found in your browsing history"
               checked={highlightHistoryLinksEnabled}
               onChange={setHighlightHistoryLinksPersist}
-              disabled={!masterEnabled}
+              disabled={globalDisabled}
+              className={settingRow}
             />
-            <ColorSetting
-              id="global-color"
-              label="Default highlight color"
-              hint="Used on every site unless you set a site override."
-              value={defaultHighlightColor}
-              onChange={setDefaultHighlightColorPersist}
-            />
-            {showGlobalRestore ? (
-              <div className={settingsResetRow}>
-                <div className={settingsResetCopy}>
-                  <p className={toggleLabel}>Restore defaults</p>
-                  <p className={toggleDescription}>
-                    Reset all global settings to their original values.
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  className={settingsResetButton}
-                  onClick={resetGlobalDefaults}
-                >
-                  Restore
-                </button>
-              </div>
-            ) : null}
-          </div>
-        </section>
-        <section className={settingsCardSite}>
-          <div className={settingsCardHead}>
-            <h2 className={settingsCardTitle}>Current site</h2>
-            <p
-              className={
-                siteDisabled
-                  ? settingsCardScopeBadgeMuted
-                  : settingsCardScopeBadge
-              }
+          </SettingsSection>
+          {showGlobalRestore ? (
+            <button
+              type="button"
+              className={buttonSecondary}
+              onClick={resetGlobalDefaults}
             >
-              {siteMeta}
-            </p>
-          </div>
-          <div className={settingsCardBody}>
-            <SettingToggle
-              id="site-enabled"
-              label="Apply styling on this site"
-              description="On: use your global rules and colors here. Off: no extension styling on this site."
-              checked={hostSettings.siteColorsEnabled}
-              onChange={setSiteColorsEnabledPersist}
-              disabled={siteControlsDisabled}
-            />
-            <SettingToggle
-              id="site-custom-color"
-              label="Site-only highlight color"
-              description="Use a color on this site that overrides the global default."
-              checked={hostSettings.customHighlightEnabled}
-              onChange={setCustomHighlightEnabledPersist}
-              disabled={siteCustomColorToggleDisabled}
-            />
-            {hostSettings.customHighlightEnabled &&
-            hostSettings.siteColorsEnabled &&
-            !siteControlsDisabled ? (
-              <ColorSetting
-                id="site-color"
-                label="Site highlight color"
-                hint="Applies on this site only."
-                value={hostSettings.highlightColor ?? defaultHighlightColor}
-                onChange={setSiteHighlightColorPersist}
-              />
-            ) : null}
-            {showSiteRemove ? (
-              <div className={settingsResetRow}>
-                <div className={settingsResetCopy}>
-                  <p className={toggleLabel}>Clear site overrides</p>
-                  <p className={toggleDescription}>
-                    Remove saved settings for this site. Global defaults apply.
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  className={settingsResetButton}
-                  onClick={resetThisSiteOnly}
-                  disabled={siteControlsDisabled}
-                >
-                  Clear
-                </button>
-              </div>
-            ) : null}
-          </div>
-        </section>
-      </div>
+              Reset all settings
+            </button>
+          ) : null}
+        </div>
+      </main>
       <Footer />
     </div>
   );

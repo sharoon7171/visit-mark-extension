@@ -1,9 +1,15 @@
 import { createRoot } from "react-dom/client";
 
 import "@/global.css";
-import { loadHostSiteSettingsModel } from "@/preferences/host-site-settings";
+import {
+  defaultHostSiteSettings,
+  loadHostSiteSettingsModel,
+} from "@/preferences/host-site-settings";
 import { loadReviewPromptShouldShow } from "@/preferences/review-prompt-local";
-import { loadExtensionSyncedOptions } from "@/preferences/synced-options";
+import {
+  defaultExtensionSyncedOptions,
+  loadExtensionSyncedOptions,
+} from "@/preferences/synced-options";
 
 import { App } from "./App";
 
@@ -24,22 +30,40 @@ async function activeTabHostname(): Promise<string | null> {
   }
 }
 
-void (async () => {
-  try {
-    await document.fonts.ready;
-  } catch {}
-  const initialHostname = await activeTabHostname();
-  const initialSyncedOptions = await loadExtensionSyncedOptions();
-  const initialShowReviewPrompt = await loadReviewPromptShouldShow();
-  const { settings: initialHostSettings } = await loadHostSiteSettingsModel(
-    initialHostname ?? "",
-  );
-  createRoot(el).render(
-    <App
-      initialHostSettings={initialHostSettings}
-      initialHostname={initialHostname}
-      initialShowReviewPrompt={initialShowReviewPrompt}
-      initialSyncedOptions={initialSyncedOptions}
-    />,
-  );
-})();
+async function loadPopupBootstrap() {
+  const hostnamePromise = activeTabHostname();
+  const [
+    initialHostname,
+    initialSyncedOptions,
+    initialShowReviewPrompt,
+    { settings: initialHostSettings },
+  ] = await Promise.all([
+    hostnamePromise,
+    loadExtensionSyncedOptions(),
+    loadReviewPromptShouldShow(),
+    hostnamePromise.then((hostname) =>
+      loadHostSiteSettingsModel(hostname ?? ""),
+    ),
+  ]);
+  return {
+    initialHostSettings,
+    initialHostname,
+    initialShowReviewPrompt,
+    initialSyncedOptions,
+  };
+}
+
+const root = createRoot(el);
+root.render(
+  <App
+    key="boot"
+    initialHostSettings={defaultHostSiteSettings}
+    initialHostname={null}
+    initialShowReviewPrompt={false}
+    initialSyncedOptions={defaultExtensionSyncedOptions}
+  />,
+);
+
+void loadPopupBootstrap().then((bootstrap) => {
+  root.render(<App key="ready" {...bootstrap} />);
+});

@@ -22,11 +22,21 @@ const manifest = JSON.parse(
 const version = manifest.version;
 const zipPath = path.join(buildDir, `${version}.zip`);
 
-execFileSync("yarn", ["build"], { cwd: projectRoot, stdio: "inherit" });
+const requiredDistFiles = [
+  "manifest.json",
+  "background.js",
+  "popup.html",
+  "popup.js",
+];
 
-if (!existsSync(path.join(distDir, "manifest.json"))) {
-  process.stderr.write(`Missing dist output: ${distDir}\n`);
-  process.exit(1);
+execFileSync("npm", ["run", "build"], { cwd: projectRoot, stdio: "inherit" });
+
+for (const file of requiredDistFiles) {
+  const filePath = path.join(distDir, file);
+  if (!existsSync(filePath)) {
+    process.stderr.write(`Missing dist output: ${filePath}\n`);
+    process.exit(1);
+  }
 }
 
 mkdirSync(buildDir, { recursive: true });

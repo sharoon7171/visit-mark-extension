@@ -1,4 +1,7 @@
-import { VISITED_LINK_COLOR_SELECTORS } from "./visited-targets";
+const VISITED_LINK_COLOR_SELECTORS: readonly string[] = [
+  "a:visited",
+  "a:visited *",
+];
 
 export const LEGACY_NEUTRALIZE_VISITED_LINK_CSS =
   VISITED_LINK_COLOR_SELECTORS.map(

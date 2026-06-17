@@ -17,6 +17,12 @@ const ISSUE_BUG_URL = `${REPO_URL}/issues/new?template=bug_report.yml`;
 const ISSUE_FEATURE_URL = `${REPO_URL}/issues/new?template=feature_request.yml`;
 const SQ_TECH_URL = "https://www.sqtech.dev/";
 
+const FOOTER_LINKS = [
+  { href: chromeWebStoreReviewsUrl(), label: "Rate" },
+  { href: ISSUE_FEATURE_URL, label: "Feature" },
+  { href: ISSUE_BUG_URL, label: "Bug" },
+] as const;
+
 export function Footer() {
   return (
     <footer className={footerRoot}>
@@ -25,52 +31,30 @@ export function Footer() {
           <p className={footerCreditLine}>
             By{" "}
             <a
-              className={footerCreditLink}
               href={SQ_TECH_URL}
               target="_blank"
               rel="noopener noreferrer"
+              className={footerCreditLink}
             >
               SQ Tech
             </a>
           </p>
         </div>
-        <nav
-          className={footerNav}
-          aria-label="Feedback and reviews"
-        >
+        <nav className={footerNav} aria-label="Extension links">
           <div className={footerActionGroup}>
-            <a
-              className={footerActionGroupItem}
-              href={chromeWebStoreReviewsUrl()}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Leave a review
-            </a>
-            <span
-              className={footerActionGroupRule}
-              aria-hidden
-            />
-            <a
-              className={footerActionGroupItem}
-              href={ISSUE_FEATURE_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Request feature
-            </a>
-            <span
-              className={footerActionGroupRule}
-              aria-hidden
-            />
-            <a
-              className={footerActionGroupItem}
-              href={ISSUE_BUG_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Report bug
-            </a>
+            {FOOTER_LINKS.map((link, index) => (
+              <span key={link.href} className="contents">
+                {index > 0 ? <span className={footerActionGroupRule} /> : null}
+                <a
+                  href={link.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={footerActionGroupItem}
+                >
+                  {link.label}
+                </a>
+              </span>
+            ))}
           </div>
         </nav>
       </div>

@@ -19,8 +19,4 @@ export const designShadows = {
     .trim(),
 
   knob: `0 1px 3px rgb(0 0 0 / 0.2), 0 1px 1px rgb(255 255 255 / 0.06)`,
-
-  "switch-inset": `inset 0 1px 1px rgb(${ink} / 0.1)`,
-
-  "switch-inset-on": `inset 0 1px 2px rgb(37 99 235 / 0.35)`,
 } as const;

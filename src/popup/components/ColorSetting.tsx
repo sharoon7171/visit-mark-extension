@@ -4,21 +4,17 @@ import { DEFAULT_VISITED_HEX } from "@/lib/hex-color";
 
 import {
   colorFieldRoot,
-  colorFieldTopRow,
   colorHex,
   colorHexSwatchRow,
-  colorHint,
   colorLabel,
-  colorLabelBlock,
   colorPickerEmbed,
-  colorPickerRoot,
   colorSwatch,
 } from "../../../ui-classes/color-field";
 
 type ColorSettingProps = {
-  hint?: string;
+  disabled?: boolean;
   id: string;
-  label: string;
+  label?: string;
   onChange: (value: string) => void;
   value: string;
 };
@@ -39,35 +35,29 @@ function toFullHex(raw: string): string {
 }
 
 export function ColorSetting({
-  hint,
+  disabled = false,
   id,
-  label,
+  label = "Highlight color",
   onChange,
   value,
 }: ColorSettingProps) {
   const safe = toFullHex(value);
   const displayHex = safe.toUpperCase();
   const labelId = `${id}-label`;
+  const rootClass = disabled ? "pointer-events-none opacity-40" : "";
 
   return (
-    <div className={colorFieldRoot}>
-      <div className={colorFieldTopRow}>
-        <div className={colorLabelBlock}>
-          <label id={labelId} className={colorLabel}>
-            {label}
-          </label>
-          {hint ? <p className={colorHint}>{hint}</p> : null}
-        </div>
-        <div className={colorHexSwatchRow}>
-          <span
-            className={colorSwatch}
-            style={{ backgroundColor: safe }}
-            aria-hidden
-          />
-          <span className={colorHex} title={displayHex} aria-hidden>
-            {displayHex}
-          </span>
-        </div>
+    <div className={`${colorFieldRoot} ${rootClass}`}>
+      <p className={colorLabel}>{label}</p>
+      <div className={colorHexSwatchRow}>
+        <span
+          className={colorSwatch}
+          style={{ backgroundColor: safe }}
+          aria-hidden
+        />
+        <span id={labelId} className={colorHex}>
+          {displayHex}
+        </span>
       </div>
       <div className={colorPickerEmbed}>
         <HexColorPicker
@@ -75,7 +65,7 @@ export function ColorSetting({
           color={safe}
           onChange={(next) => onChange(toFullHex(next))}
           aria-labelledby={labelId}
-          className={colorPickerRoot}
+          className="w-full"
         />
       </div>
     </div>

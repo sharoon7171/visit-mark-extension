@@ -21,5 +21,13 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["src", "tokens", "vite.config.ts", "tailwind.config.ts"]
+  "include": [
+    "src",
+    "tokens",
+    "ui-classes",
+    "vite.shared.ts",
+    "vite.popup.config.ts",
+    "vite.background.config.ts",
+    "tailwind.config.ts"
+  ]
 }

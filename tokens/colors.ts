@@ -9,17 +9,8 @@ export const designColors = {
   },
   card: {
     border: "#cbd5e1",
-    head: "#f1f5f9",
-    bodyWell: "#f8fafc",
     global: {
       bg: "#f8fafc",
-    },
-    site: {
-      bg: "#f8fafc",
-    },
-    row: {
-      bg: "#ffffff",
-      border: "#e4e9f0",
     },
     reset: {
       bg: "#f8fafc",

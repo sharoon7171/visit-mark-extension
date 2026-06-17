@@ -21,6 +21,10 @@ const DEFAULTS: ExtensionSyncedOptions = {
   masterEnabled: true,
 };
 
+export const defaultExtensionSyncedOptions: ExtensionSyncedOptions = {
+  ...DEFAULTS,
+};
+
 const SYNC_KEYS = Object.values(EXTENSION_SYNC_OPTION_KEYS);
 const SYNC_KEY_SET = new Set<string>(SYNC_KEYS);
 

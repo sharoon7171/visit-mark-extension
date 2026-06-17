@@ -1,5 +1,20 @@
+@import "@fontsource/poppins/latin-500.css";
+@import "@fontsource/poppins/latin-600.css";
+@import "@fontsource/poppins/latin-700.css";
+@import "@fontsource/poppins/latin-900.css";
 @import "tailwindcss";
 @config "../tailwind.config.ts";
 
 @source "../public/popup.html";
 @source "../ui-classes/**/*.ts";
+
+@layer base {
+  html,
+  body,
+  button,
+  input,
+  select,
+  textarea {
+    font-family: Poppins;
+  }
+}

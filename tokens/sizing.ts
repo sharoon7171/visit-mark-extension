@@ -1,4 +1,4 @@
 export const designExtensionPopup = {
-  width: "800px",
-  height: "600px",
+  width: "420px",
+  height: "520px",
 } as const;
